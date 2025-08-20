@@ -3,13 +3,10 @@ from typing import Optional
 
 
 class ImodTiltSeries:
-
     def __init__(self, file_name: Path) -> None:
         self.file_name = file_name
 
-    def imod_to_cets(self,
-                     tlt_file: Path,
-                     xf_file: Optional[Path] = None):
+    def imod_to_cets(self, tlt_file: Path, xf_file: Optional[Path] = None):
         """Converts an IMOD tilt-series into CETS metadata.
 
         :param tlt_file: tlt file containing the angles in a column. It may also
@@ -22,10 +19,12 @@ class ImodTiltSeries:
         """
         pass
 
-    def cets_to_imod(self,
-                     tlt_file: Path,
-                     add_dose_to_tlt: Optional[bool] = True,
-                     xf_file: Optional[Path] = None):
+    def cets_to_imod(
+        self,
+        tlt_file: Path,
+        add_dose_to_tlt: Optional[bool] = True,
+        xf_file: Optional[Path] = None,
+    ):
         """Converts CETS Tilt-series metadata into IMOD files.
 
         :param tlt_file: output tlt file to be generated.
