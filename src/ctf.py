@@ -1,7 +1,8 @@
 import math
 from pathlib import Path
 from typing import List, Tuple, Dict
-from src.ctf_model import CTFMetadata
+
+from datamodels.ctf_model import CTFMetadata
 from utils.utils import get_ts_no_imgs, standarize_defocus
 
 
@@ -432,8 +433,6 @@ class ImodCtfSeries:
 
 
 # import yaml
-#
-# print("Súbete un poquito")
 #
 # ts_file = "/home/jjimenez/ScipionUserData/projects/TestImodEstimateCtf/Runs/000002_ProtImportTs/extra/03.mrc"
 # defocus_f = "/home/jjimenez/ScipionUserData/projects/TestImodEstimateCtf/Runs/000204_ProtImodAutomaticCtfEstimation/extra/TS_03/TS_03.defocus"
