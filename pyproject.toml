@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 include-package-data = false
 
 [tool.setuptools.packages.find]
-include = ["src*"]
+include = ["src*", "utils*"]
 namespaces = false
 
 [project]
@@ -54,7 +54,7 @@ optional-dependencies.docs = [
 Repository = "https://github.com/TomoBabel/cets-imod"
 
 [tool.mypy]
-files = ["src", "tests"]
+files = ["src", "utils", "tests"]
 python_version = "3.11"
 warn_unused_configs = true
 
