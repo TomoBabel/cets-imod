@@ -1,6 +1,6 @@
 import math
 from pathlib import Path
-from typing import List
+from typing import List, Tuple, Dict
 from src.ctf_model import CTFMetadata
 from utils.utils import get_ts_no_imgs, standarize_defocus
 
@@ -16,7 +16,7 @@ class ImodCtfSeries:
     def cets_to_imod(self):
         pass
 
-    def _parse_defocus_file(self):
+    def _parse_defocus_file(self) -> List[CTFMetadata]:
         """Parse tilt-series ctf estimation file."""
         defocusFileFlag = self._get_defocus_file_flag()
         (defocus_u_dict, defocus_v_dict, defocus_angle_dict, phase_shift_dict) = (
@@ -260,7 +260,9 @@ class ImodCtfSeries:
         # Else, it inserts a key with the default value to the dictionary.
         dictionary.setdefault(index, []).append(value)
 
-    def _refactor_ctf_flag_0(self, ctf_info_imod_table):
+    def _refactor_ctf_flag_0(
+        self, ctf_info_imod_table: List[List[float]]
+    ) -> dict[int, list[float]]:
         """This method takes a table containing the information of
         an IMOD-based CTF estimation containing only defocus
         information (5 columns) and produces a dictionary for clearer
@@ -271,7 +273,7 @@ class ImodCtfSeries:
                 "Misleading file format, CTF estimation with no astigmatism should be 5 columns long"
             )
 
-        defocus_u_dict = {}
+        defocus_u_dict: Dict[int, List[float]] = {}
 
         for element in ctf_info_imod_table:
             start, end = int(element[0]), int(element[1])
@@ -282,7 +284,9 @@ class ImodCtfSeries:
 
         return defocus_u_dict
 
-    def _refactor_ctf_flag_1(self, ctf_info_imod_table):
+    def _refactor_ctf_flag_1(
+        self, ctf_info_imod_table: List[List[float]]
+    ) -> Tuple[dict[int, list[float]], dict[int, list[float]], dict[int, list[float]]]:
         """This method takes a table containing the information of an
         IMOD-based CTF estimation containing defocus and
         astigmatism information (7 columns) and produces a set
@@ -294,9 +298,9 @@ class ImodCtfSeries:
                 "Misleading file format, CTF estimation "
                 "with astigmatism should be 7 columns long"
             )
-        defocus_u_dict = {}
-        defocus_v_dict = {}
-        defocus_angle_dict = {}
+        defocus_u_dict: Dict[int, List[float]] = {}
+        defocus_v_dict: Dict[int, List[float]] = {}
+        defocus_angle_dict: Dict[int, List[float]] = {}
 
         for element in ctf_info_imod_table:
             start, end = int(element[0]), int(element[1])
@@ -312,7 +316,9 @@ class ImodCtfSeries:
 
         return defocus_u_dict, defocus_v_dict, defocus_angle_dict
 
-    def _refactor_ctf_flag_4(self, ctf_info_imod_table):
+    def _refactor_ctf_flag_4(
+        self, ctf_info_imod_table: List[List[float]]
+    ) -> Tuple[dict[int, list[float]], dict[int, list[float]]]:
         """This method takes a table containing the information of
         an IMOD-based CTF estimation containing defocus, and phase
         shift information (6 columns) and produces a new set of
@@ -325,8 +331,8 @@ class ImodCtfSeries:
                 "and phase shift should be 6 columns long"
             )
 
-        defocus_u_dict = {}
-        phase_shift_dict = {}
+        defocus_u_dict: Dict[int, List[float]] = {}
+        phase_shift_dict: Dict[int, List[float]] = {}
 
         for element in ctf_info_imod_table:
             start, end = int(element[0]), int(element[1])
@@ -339,7 +345,14 @@ class ImodCtfSeries:
 
         return defocus_u_dict, phase_shift_dict
 
-    def _refactor_ctf_flag_5(self, ctf_info_imod_table):
+    def _refactor_ctf_flag_5(
+        self, ctf_info_imod_table: List[List[float]]
+    ) -> Tuple[
+        dict[int, list[float]],
+        dict[int, list[float]],
+        dict[int, list[float]],
+        dict[int, list[float]],
+    ]:
         """This method takes a table containing the information of
         an IMOD-based CTF estimation containing defocus, astigmatism
         and phase shift information (8 columns) and produces a new
@@ -352,10 +365,10 @@ class ImodCtfSeries:
                 "shift should be 8 columns long"
             )
 
-        defocus_u_dict = {}
-        defocus_v_dict = {}
-        defocus_angle_dict = {}
-        phase_shift_dict = {}
+        defocus_u_dict: Dict[int, List[float]] = {}
+        defocus_v_dict: Dict[int, List[float]] = {}
+        defocus_angle_dict: Dict[int, List[float]] = {}
+        phase_shift_dict: Dict[int, List[float]] = {}
 
         for element in ctf_info_imod_table:
             start, end = int(element[0]), int(element[1])
@@ -372,7 +385,14 @@ class ImodCtfSeries:
 
         return defocus_u_dict, defocus_v_dict, defocus_angle_dict, phase_shift_dict
 
-    def _refactor_ctf_flag_37(self, ctf_info_imod_table):
+    def _refactor_ctf_flag_37(
+        self, ctf_info_imod_table: List[List[float]]
+    ) -> Tuple[
+        dict[int, list[float]],
+        dict[int, list[float]],
+        dict[int, list[float]],
+        dict[int, list[float]],
+    ]:
         """This method takes a table containing the information of an
         IMOD-based CTF estimation containing defocus, astigmatism, phase
         shift information and cut-on frequency (8 columns) and produces a
@@ -385,10 +405,10 @@ class ImodCtfSeries:
                 "phase shift and cut-on frequency should be 9 columns long"
             )
 
-        defocus_u_dict = {}
-        defocus_v_dict = {}
-        defocus_angle_dict = {}
-        phase_shift_dict = {}
+        defocus_u_dict: Dict[int, List[float]] = {}
+        defocus_v_dict: Dict[int, List[float]] = {}
+        defocus_angle_dict: Dict[int, List[float]] = {}
+        phase_shift_dict: Dict[int, List[float]] = {}
 
         for element in ctf_info_imod_table:
             start, end = int(element[0]), int(element[1])
@@ -412,10 +432,11 @@ class ImodCtfSeries:
 
 
 # import yaml
-# print('Súbete un poquito')
 #
-# ts_file = '/home/jjimenez/ScipionUserData/projects/TestImodEstimateCtf/Runs/000002_ProtImportTs/extra/03.mrc'
-# defocus_f = '/home/jjimenez/ScipionUserData/projects/TestImodEstimateCtf/Runs/000204_ProtImodAutomaticCtfEstimation/extra/TS_03/TS_03.defocus'
+# print("Súbete un poquito")
+#
+# ts_file = "/home/jjimenez/ScipionUserData/projects/TestImodEstimateCtf/Runs/000002_ProtImportTs/extra/03.mrc"
+# defocus_f = "/home/jjimenez/ScipionUserData/projects/TestImodEstimateCtf/Runs/000204_ProtImodAutomaticCtfEstimation/extra/TS_03/TS_03.defocus"
 #
 # # Crear una instancia (puedes pasar valores si quieres)
 # ics = ImodCtfSeries(ts_file_name=Path(ts_file), defocus_file=Path(defocus_f))
