@@ -437,11 +437,9 @@ class ImodCtfSeries:
 # ts_file = "/home/jjimenez/ScipionUserData/projects/TestImodEstimateCtf/Runs/000002_ProtImportTs/extra/03.mrc"
 # defocus_f = "/home/jjimenez/ScipionUserData/projects/TestImodEstimateCtf/Runs/000204_ProtImodAutomaticCtfEstimation/extra/TS_03/TS_03.defocus"
 #
-# # Crear una instancia (puedes pasar valores si quieres)
 # ics = ImodCtfSeries(ts_file_name=Path(ts_file), defocus_file=Path(defocus_f))
 # mdList = ics.imod_to_cets()
 #
-# # Convertir a dict
 # for metadata in mdList:
 #     metadata_dict = metadata.model_dump()
 #     yaml_output = yaml.dump(metadata_dict, sort_keys=False)
