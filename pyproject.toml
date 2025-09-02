@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 include-package-data = false
 
 [tool.setuptools.packages.find]
-include = ["src*", "utils*"]
+include = ["imod*"]
 namespaces = false
 
 [project]

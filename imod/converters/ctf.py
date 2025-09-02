@@ -1,9 +1,8 @@
 import math
 from pathlib import Path
 from typing import List, Tuple, Dict
-
-from datamodels.ctf_model import CTFMetadata
-from utils.utils import get_ts_no_imgs, standarize_defocus
+from datamodels.models.ctf_model import CTFMetadata
+from imod.utils.utils import get_ts_no_imgs, standarize_defocus
 
 
 class ImodCtfSeries:
@@ -434,8 +433,10 @@ class ImodCtfSeries:
 
 # import yaml
 #
-# ts_file = "/home/jjimenez/ScipionUserData/projects/TestImodEstimateCtf/Runs/000002_ProtImportTs/extra/03.mrc"
-# defocus_f = "/home/jjimenez/ScipionUserData/projects/TestImodEstimateCtf/Runs/000204_ProtImodAutomaticCtfEstimation/extra/TS_03/TS_03.defocus"
+# f_path = Path('/home/jjimenez/scipion3/data/tests/relion40_sta_tutorial_data/tomograms/TS_03')
+# ts_file = f_path.joinpath("03.mrc")
+# f_path = Path("/home/jjimenez/scipion3/data/tests/relion40_sta_tutorial_data/testImodCtf")
+# defocus_f = f_path.joinpath("TS_03.defocus")
 #
 # ics = ImodCtfSeries(ts_file_name=Path(ts_file), defocus_file=Path(defocus_f))
 # mdList = ics.imod_to_cets()
