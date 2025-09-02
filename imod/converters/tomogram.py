@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Optional
-from datamodels.models.tomogram import Tomogram
+from datamodels.models.tomogram_model import Tomogram
 from datamodels.utils.em_file_readers import read_mrc
 
 
