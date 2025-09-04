@@ -42,13 +42,19 @@ class ImodTomogram:
         pass
 
 
+# # READER EXAMPLE
 # import yaml
 #
-# f_path = Path('/home/jjimenez/ScipionUserData/projects/TestImodTomoReconstruction/Runs/000441_ProtImodTomoReconstruction/extra/TS_03/')
-# tomo_file = f_path.joinpath('TS_03.mrc')
+# f_path = Path(
+#     "/home/jjimenez/ScipionUserData/projects/TestImodTomoReconstruction/Runs/000441_ProtImodTomoReconstruction/extra/TS_03/"
+# )
+# tomo_file = f_path.joinpath("TS_03.mrc")
 # it = ImodTomogram(tomo_file_name=tomo_file)
 # tomo_metadata = it.imod_to_cets()
 #
+# output_file = "/home/jjimenez/CZII/cets_scratch_dir/TS_03_cets_tomogram.yaml"
 # metadata_dict = tomo_metadata.model_dump()
-# yaml_output = yaml.dump(metadata_dict, sort_keys=False)
-# print(yaml_output)
+# with open(output_file, "w") as file:
+#     yaml.dump(metadata_dict, file, sort_keys=False, explicit_start=True)
+#
+# print(yaml.dump(metadata_dict, sort_keys=False, explicit_start=True))

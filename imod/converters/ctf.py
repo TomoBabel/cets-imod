@@ -2,7 +2,7 @@ import math
 from pathlib import Path
 from typing import List, Tuple, Dict
 from datamodels.models.ctf_model import CTFMetadata
-from imod.utils.utils import get_ts_no_imgs, standarize_defocus
+from imod.utils.utils import get_ts_no_imgs, standarize_defocus, load_md_list_yaml
 
 
 class ImodCtfSeries:
@@ -10,11 +10,46 @@ class ImodCtfSeries:
         self.ts_file_name = ts_file_name
         self.defocus_file = defocus_file
 
-    def imod_to_cets(self):
+    def imod_to_cets(self) -> List[CTFMetadata]:
+        """Reads a .defocus file and generates a list of CETS CTFMetada objects,
+        one per tilt-image."""
         return self._parse_defocus_file()
 
-    def cets_to_imod(self):
-        pass
+    @staticmethod
+    def cets_to_imod(
+        ctf_yaml_file: Path,
+        tilt_angle_list: List[float],
+        output_defocus_file: Path,
+    ) -> None:
+        """Reads a .yaml file containing the serialized CETS CTFMetadata objects of
+        all the tilt-images that compose a tilt-series and generates the corresponding
+        IMOD defocus file."""
+        # TODO: check the phase shift
+        md_list = load_md_list_yaml(ctf_yaml_file, CTFMetadata)
+        n_data_sec = len(md_list)
+        n_angles = len(tilt_angle_list)
+        if n_data_sec != n_angles:
+            raise Exception(
+                f"The number of data sections [{n_data_sec}] must be the same "
+                f"as the number of angles [{n_angles}] provided."
+            )
+        with open(output_defocus_file, "w") as f:
+            lines = ["1\t0\t0.0\t0.0\t0.0\t3\n"]
+            for i, ctf_md_dict in enumerate(md_list):
+                ind = i + 1  # Indices in IMOD start in 1
+                tilt_angle = tilt_angle_list[i]
+                newLine = "%i\t%i\t%.2f\t%.2f\t%.1f\t%.1f\t%.2f\n" % (
+                    ind,
+                    ind,
+                    tilt_angle,
+                    tilt_angle,
+                    ctf_md_dict["defocus_u"] / 10,  # Defocus value in Imod is in nm
+                    ctf_md_dict["defocus_v"] / 10,
+                    ctf_md_dict["defocus_angle"],
+                )
+
+                lines.append(newLine)
+            f.writelines(lines)
 
     def _parse_defocus_file(self) -> List[CTFMetadata]:
         """Parse tilt-series ctf estimation file."""
@@ -431,17 +466,48 @@ class ImodCtfSeries:
         )
 
 
+# # READER EXAMPLE
 # import yaml
+# from os.path import exists
+# from os import remove
 #
-# f_path = Path('/home/jjimenez/scipion3/data/tests/relion40_sta_tutorial_data/tomograms/TS_03')
+# f_path = Path(
+#     "/home/jjimenez/scipion3/data/tests/relion40_sta_tutorial_data/tomograms/TS_03"
+# )
 # ts_file = f_path.joinpath("03.mrc")
-# f_path = Path("/home/jjimenez/scipion3/data/tests/relion40_sta_tutorial_data/testImodCtf")
-# defocus_f = f_path.joinpath("TS_03.defocus")
+# f_path_defocus = Path(
+#     "/home/jjimenez/scipion3/data/tests/relion40_sta_tutorial_data/testImodCtf"
+# )
+# defocus_f = f_path_defocus.joinpath("TS_03.defocus")
 #
 # ics = ImodCtfSeries(ts_file_name=Path(ts_file), defocus_file=Path(defocus_f))
 # mdList = ics.imod_to_cets()
 #
+# output_path = Path("/home/jjimenez/CZII/cets_scratch_dir")
+# yaml_file = output_path.joinpath("TS_03_cets_ctf.yaml")
+# if exists(yaml_file):
+#     remove(yaml_file)
+#
+# with open(yaml_file, "a") as file:
+#     for metadata in mdList:
+#         metadata_dict = metadata.model_dump()
+#         yaml_output = yaml.dump(
+#             metadata_dict, file, sort_keys=False, explicit_start=True
+#         )
+#
 # for metadata in mdList:
 #     metadata_dict = metadata.model_dump()
-#     yaml_output = yaml.dump(metadata_dict, sort_keys=False)
+#     yaml_output = yaml.dump(metadata_dict, sort_keys=False, explicit_start=True)
 #     print(yaml_output)
+#
+# # WRITER EXAMPLE
+# tlt_file = f_path.joinpath("03.rawtlt")
+# with open(tlt_file, "r") as f:
+#     tilt_angle_list = [float(line.strip()) for line in f if line.strip()]
+#
+# output_defocus_file = output_path.joinpath("TS_03.defocus")
+# if exists(output_defocus_file):
+#     remove(output_defocus_file)
+# ics.cets_to_imod(yaml_file, tilt_angle_list, output_defocus_file)
+#
+# print(f"Defocus file written written from CETS {output_defocus_file}")
