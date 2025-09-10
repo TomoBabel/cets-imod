@@ -1,7 +1,8 @@
 import math
 from pathlib import Path
 from typing import List, Tuple, Dict
-from datamodels.models.ctf_model import CTFMetadata
+
+from cets_data_model.models.ctf_model import CTFMetadata
 from imod.utils.utils import get_ts_no_imgs, standarize_defocus, load_md_list_yaml
 
 

@@ -1,7 +1,8 @@
 from pathlib import Path
 from typing import Optional
-from datamodels.models.tomogram_model import Tomogram
-from datamodels.utils.em_file_readers import read_mrc
+
+from cets_data_model.models.tomogram_model import Tomogram
+from cets_data_model.utils.image_utils import get_mrc_info
 
 
 class ImodTomogram:
@@ -26,13 +27,13 @@ class ImodTomogram:
         from a tilt-series with the ctf corrected.
         :type ctf_corrected: bool, optional
         """
-        nx, ny, nz, apix = read_mrc(self.file_name)
+        image_info_obj = get_mrc_info(str(self.file_name))
         return Tomogram(
             path=str(self.file_name),
-            width=nx,
-            height=ny,
-            depth=nz,
-            voxel_size=apix,
+            width=image_info_obj.size_x,
+            height=image_info_obj.size_y,
+            depth=image_info_obj.size_z,
+            voxel_size=image_info_obj.apix_x,
             ctf_corrected=ctf_corrected,
             even_path=even_file_name,
             odd_path=odd_file_name,
@@ -46,7 +47,7 @@ class ImodTomogram:
 # import yaml
 #
 # f_path = Path(
-#     "/home/jjimenez/ScipionUserData/projects/TestImodTomoReconstruction/Runs/000441_ProtImodTomoReconstruction/extra/TS_03/"
+#     "/home/jjimenez/ExtraDataSets"
 # )
 # tomo_file = f_path.joinpath("TS_03.mrc")
 # it = ImodTomogram(tomo_file_name=tomo_file)
