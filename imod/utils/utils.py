@@ -1,9 +1,25 @@
+import os
 from pathlib import Path
 from pydantic import BaseModel
 from typing import Tuple, get_args, get_origin, Union, get_type_hints, List, Dict, Type
-
 import mrcfile
 import numpy as np
+
+
+def validate_file(filename: Path | str, field_name: str) -> Path:
+    p = Path(filename).expanduser()
+    try:
+        p = p.resolve(strict=True)
+    except FileNotFoundError:
+        raise FileNotFoundError(f"{field_name} does not exist: {p}") from None
+
+    if not p.is_file():
+        raise IsADirectoryError(f"{field_name} must be a file, not a directory: {p}")
+
+    if not os.access(p, os.R_OK):
+        raise PermissionError(f"No read permission for {field_name}: {p}")
+
+    return p
 
 
 def load_mrc_file(mrc_file: Path) -> np.ndarray:

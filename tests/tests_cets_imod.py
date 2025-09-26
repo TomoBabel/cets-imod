@@ -3,11 +3,12 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
-from tests import CETS_IMOD_CTF
+
+CETS_IMOD_CTF = "cets_imod_ctf"
 
 
 class CetsImodDefocusReaderTest(unittest.TestCase):
-    def setUp(self):
+    def setUpClass(self):
         """
         Setup test data and output directories.
         """
@@ -16,5 +17,6 @@ class CetsImodDefocusReaderTest(unittest.TestCase):
         self._orig_dir = os.getcwd()
         os.chdir(self.test_dir)
 
-    def _load_test_data(self, defocus_file: Path):
-        pass
+    # def test_imod_to_cets_01(self):
+    #     ts_file_name = "test.mrc"
+    #     pass
