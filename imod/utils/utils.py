@@ -5,8 +5,13 @@ from typing import Tuple, get_args, get_origin, Union, get_type_hints, List, Dic
 import mrcfile
 import numpy as np
 
+from cets_data_model.models.ctf_model import CTFMetadata
+from imod.contants import MRC_MRCS_EXT
 
-def validate_file(filename: Path | str, field_name: str) -> Path:
+
+def validate_file(
+    filename: Path | str, field_name: str, expected_ext: str | List[str]
+) -> Path:
     p = Path(filename).expanduser()
     try:
         p = p.resolve(strict=True)
@@ -19,7 +24,31 @@ def validate_file(filename: Path | str, field_name: str) -> Path:
     if not os.access(p, os.R_OK):
         raise PermissionError(f"No read permission for {field_name}: {p}")
 
+    ext = p.suffix
+    expected_ext_list: List[str] = (
+        [expected_ext] if isinstance(expected_ext, str) else expected_ext
+    )
+    if ext not in expected_ext_list:
+        raise ValueError(
+            f"Invalid file extension '{ext}'. Expected one of: {expected_ext_list}"
+        )
     return p
+
+
+def validate_even_odd_files(
+    even_file_name: Path | str, odd_file_name: Path | str
+) -> Tuple[Path | str, Path | str]:
+    even_provided = even_file_name is not None
+    odd_provided = odd_file_name is not None
+    if even_provided ^ odd_provided:  # Xor
+        raise ValueError(
+            "Both files 'even_file_name' and 'odd_file_name' should be provided, or none of them."
+        )
+    if even_provided:
+        even_file_name = validate_file(even_file_name, "even_file_name", MRC_MRCS_EXT)
+    if odd_provided:
+        odd_file_name = validate_file(odd_file_name, "odd_file_name", MRC_MRCS_EXT)
+    return even_file_name, odd_file_name
 
 
 def load_mrc_file(mrc_file: Path) -> np.ndarray:
@@ -34,6 +63,104 @@ def get_ts_no_imgs(ts_file_name: Path):
     data = load_mrc_file(ts_file_name)
     dims = data.shape
     return 1 if len(dims) < 2 else min(dims)
+
+
+def validate_tilt_angle_list(
+    ts_filename: Path, tilt_angle_list: List[float]
+) -> List[float]:
+    n_imgs = get_ts_no_imgs(ts_filename)
+    n_angles = len(tilt_angle_list)
+    if n_imgs != n_angles:
+        raise ValueError(f"Expected {n_imgs} tilt angles, but got {n_angles}.")
+    return tilt_angle_list
+
+
+def validate_ctf_md_list(
+    ctf_md_list: List[CTFMetadata] | None, expected_n_elements: int
+) -> List[CTFMetadata] | None:
+    if ctf_md_list is not None:
+        if not all(type(elem) is CTFMetadata for elem in ctf_md_list):
+            raise TypeError(
+                "All the elements in the ctf metadata provided must be of type CTFMetadata"
+            )
+        n_ctf_md = len(ctf_md_list)
+        if n_ctf_md != expected_n_elements:
+            raise ValueError(
+                f"Expected {expected_n_elements} CTFMetadata elements, but got {n_ctf_md}."
+            )
+    return ctf_md_list
+
+
+def parse_tlt_file(tlt_file_name) -> Tuple[List[float], List[float], List[int]]:
+    """Parse the IMOD tlt file, that can contain 1 column (tilt-angles), 2
+    (tilt-angles and accumulated dose) or 3 (tilt-angles, accumulated dose and
+    acquisition order)."""
+    angles, doses, orders = [], [], []
+    with open(tlt_file_name) as f:
+        for line in f:
+            strippedLine = line.strip()
+            if not strippedLine:
+                print(f"Empty line found in {tlt_file_name}. Ignoring it.")
+                continue
+            columns = strippedLine.split()
+            if columns:
+                angles.append(float(columns[0]))
+                # If there is a second column, we take it as dose
+                if len(columns) > 1:
+                    doses.append(float(columns[1]))
+                # If there is a third column, we take it as tilt order
+                if len(columns) > 2:
+                    orders.append(int(columns[2]))
+
+    print(f"Angles found: {angles}")
+
+    if doses:
+        print(f"Doses found: {doses}")
+
+    if orders:
+        print(f"Acquisition order found: {orders}")
+    elif doses:
+        # Calculate tilt order based on the dose
+        orders = get_acq_order_from_doses(doses)
+        print(f"Tilt orders inferred from dose list: {orders}")
+
+    return angles, doses, orders
+
+
+def parse_xf_file(xf_file: Path) -> np.ndarray:
+    """This method takes an IMOD-based transformation matrix file (.xf) path and
+    returns a 3D matrix containing the transformation matrices for
+    each tilt-image belonging to the tilt-series."""
+
+    matrix = np.loadtxt(xf_file, dtype=float, comments="#")
+    n_lines = matrix.shape[0]
+    transform_matrix = np.empty([3, 3, n_lines])
+
+    for row in range(n_lines):
+        transform_matrix[0, 0, row] = matrix[row][0]
+        transform_matrix[1, 0, row] = matrix[row][2]
+        transform_matrix[0, 1, row] = matrix[row][1]
+        transform_matrix[1, 1, row] = matrix[row][3]
+        transform_matrix[0, 2, row] = matrix[row][4]
+        transform_matrix[1, 2, row] = matrix[row][5]
+        transform_matrix[2, 0, row] = 0.0
+        transform_matrix[2, 1, row] = 0.0
+        transform_matrix[2, 2, row] = 1.0
+
+    return transform_matrix
+
+
+def get_acq_order_from_doses(dose_list: List[float]) -> List[int]:
+    """Generate the acquisition order list of a tilt-series based on the provided
+    dose_list, which may be unsorted.
+    """
+    dose_list_sorted = np.argsort(dose_list)
+    acq_order_list = [0] * len(dose_list)
+    for i in range(len(dose_list)):
+        finalIndex = dose_list_sorted[i]
+        acq_order_list[finalIndex] = i + 1
+
+    return acq_order_list
 
 
 def standarize_defocus(
@@ -61,6 +188,7 @@ def standarize_defocus(
     return out_defocus_u, out_defocus_v, defocus_angle
 
 
+# YAML STUFF ############################################################
 # TODO: if yaml is used, generalize it to any Pydantic ConfiguredBaseModel and move to the main repo
 def _resolve_type(tp):
     """Helper to resolve type from Optional/Union as get_args(Optional[float]) returns (float, NoneType)

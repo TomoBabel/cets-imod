@@ -1,6 +1,7 @@
 import math
 from pathlib import Path
 from typing import List, Tuple, Dict
+from imod.contants import MRC_MRCS_EXT
 from imod.utils.utils import (
     get_ts_no_imgs,
     standarize_defocus,
@@ -12,8 +13,8 @@ from cets_data_model.models.ctf_model import CTFMetadata
 
 class ImodCtfSeries:
     def __init__(self, ts_file_name: Path, defocus_file: Path) -> None:
-        self.ts_file_name = validate_file(ts_file_name, "ts_file_name")
-        self.defocus_file = validate_file(defocus_file, "defocus_file")
+        self.ts_file_name = validate_file(ts_file_name, "ts_file_name", MRC_MRCS_EXT)
+        self.defocus_file = validate_file(defocus_file, "defocus_file", ".defocus")
 
     def imod_to_cets(self) -> List[CTFMetadata]:
         """Reads a .defocus file and generates a list of CETS CTFMetada objects,

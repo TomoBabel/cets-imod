@@ -13,7 +13,7 @@ TEST_DATA_ROOT: Final[Path] = Path(
 # Subfolders under TEST_DATA_ROOT
 CTF_DATA_DIR: Final[Path] = Path("imod_defocus_files")
 TS_DATA_DIR: Final[Path] = Path("tilt_series")
-TS_FILE: Final[Path] = TS_DATA_DIR / "TS_03.mrcs"
+TS_FILE: Final[Path] = (TEST_DATA_ROOT / TS_DATA_DIR / "TS_03.mrcs").resolve()
 
 # Dataset-wide metadata
 N_IMGS_TS03: Final[int] = 40
