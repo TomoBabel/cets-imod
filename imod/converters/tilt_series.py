@@ -1,9 +1,13 @@
 from pathlib import Path
 from typing import Optional, List
 import numpy as np
-from cets_data_model.models.ctf_model import CTFMetadata
-from cets_data_model.models.models import Affine
-from cets_data_model.models.tilt_images_model import TiltImage, TiltSeries
+from cets_data_model.models.models import (
+    Affine,
+    CTFMetadata,
+    TiltSeries,
+    TiltImage,
+    CoordinateTransformation,
+)
 from cets_data_model.utils.image_utils import get_mrc_info
 from imod.contants import MRC_MRCS_EXT
 from imod.utils.utils import (
@@ -42,10 +46,9 @@ class ImodTiltSeries:
 
     def imod_to_cets(
         self,
-        xf_file: str | Path = "",
-        binning: int = 1,
-        even_file_name: str | Path = "",
-        odd_file_name: str | Path = "",
+        xf_file: str | Path | None = None,
+        even_file_name: str | Path | None = None,
+        odd_file_name: str | Path | None = None,
         ctf_corrected: bool = False,
     ) -> TiltSeries:
         """Converts an IMOD tilt-series into CETS metadata.
@@ -53,10 +56,6 @@ class ImodTiltSeries:
         :param xf_file: xf alignment file. If not provided, the Identity matrix
         will be used as alignment data.
         :type xf_file: pathlib.Path, optional
-
-        :param binning: binning factor desired to be applied to scale the transformation
-        shifts.
-        :type binning: int, optional
 
         :param even_file_name: path of the even tomogram,
         :type even_file_name: pathlib.Path, optional
@@ -85,9 +84,6 @@ class ImodTiltSeries:
         ti_list = []
         for index in range(self.n_imgs):
             output_transform_matrix = in_transform_matrix[:, :, index]
-            if binning > 1:  # Re-scale the shifts if necessary
-                output_transform_matrix[0][2] *= binning
-                output_transform_matrix[1][2] *= binning
             ti = TiltImage(
                 path=ts_filename,
                 section=index,
@@ -133,7 +129,9 @@ class ImodTiltSeries:
         """
         pass
 
-    def _genTransform(self, xf_matrix: np.ndarray, pix_size: float) -> list[Affine]:
+    def _genTransform(
+        self, xf_matrix: np.ndarray, pix_size: float
+    ) -> list[CoordinateTransformation]:
         return [
             Affine(
                 affine=self._get_affine_values(xf_matrix, pix_size),
@@ -148,10 +146,8 @@ class ImodTiltSeries:
         """Gets the rotation angle in degrees, and the shifts in X and Y directions,
         in angstroms."""
         xf_matrix = xf_matrix.tolist()
-        sx = xf_matrix[0, 2] * pix_size
-        sy = xf_matrix[1, 2] * pix_size
         row1 = xf_matrix[0]
-        row1[-1] = sx
         row2 = xf_matrix[1]
-        row2[-1] = sy
+        row1[-1] *= pix_size  # shift_x: convert to angstroms
+        row2[-1] *= pix_size  # shift_y: convert to angstroms
         return [row1, row2, xf_matrix[2]]

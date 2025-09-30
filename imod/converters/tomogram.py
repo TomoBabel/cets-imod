@@ -1,5 +1,6 @@
 from pathlib import Path
-from cets_data_model.models.tomogram_model import Tomogram
+
+from cets_data_model.models.models import Tomogram
 from cets_data_model.utils.image_utils import get_mrc_info
 from imod.utils.utils import validate_even_odd_files
 
@@ -10,8 +11,8 @@ class ImodTomogram:
 
     def imod_to_cets(
         self,
-        even_file_name: Path | str = "",
-        odd_file_name: Path | str = "",
+        even_file_name: Path | str | None = None,
+        odd_file_name: Path | str | None = None,
         ctf_corrected: bool = False,
     ) -> Tomogram:
         """Converts an IMOD tomogran into CETS metadata.

@@ -5,13 +5,15 @@ from typing import Tuple, get_args, get_origin, Union, get_type_hints, List, Dic
 import mrcfile
 import numpy as np
 
-from cets_data_model.models.ctf_model import CTFMetadata
+from cets_data_model.models.models import CTFMetadata
 from imod.contants import MRC_MRCS_EXT
 
 
 def validate_file(
-    filename: Path | str, field_name: str, expected_ext: str | List[str]
+    filename: Path | str | None, field_name: str, expected_ext: str | List[str]
 ) -> Path:
+    if filename is None:
+        raise ValueError(f"File read from field {field_name} cannot be None")
     p = Path(filename).expanduser()
     try:
         p = p.resolve(strict=True)
@@ -36,8 +38,8 @@ def validate_file(
 
 
 def validate_even_odd_files(
-    even_file_name: Path | str, odd_file_name: Path | str
-) -> Tuple[Path | str, Path | str]:
+    even_file_name: Path | str | None, odd_file_name: Path | str | None
+) -> Tuple[Path | str | None, Path | str | None]:
     even_provided = even_file_name is not None
     odd_provided = odd_file_name is not None
     if even_provided ^ odd_provided:  # Xor

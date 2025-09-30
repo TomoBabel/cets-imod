@@ -13,7 +13,7 @@ TEST_DATA_ROOT: Final[Path] = Path(
 # Subfolders under TEST_DATA_ROOT
 CTF_DATA_DIR: Final[Path] = Path("imod_defocus_files")
 TS_DATA_DIR: Final[Path] = Path("tilt_series")
-TS_FILE: Final[Path] = (TEST_DATA_ROOT / TS_DATA_DIR / "TS_03.mrcs").resolve()
+ALI_DATA_DIR: Final[Path] = Path("alignment_files")
 
 # Dataset-wide metadata
 N_IMGS_TS03: Final[int] = 40
@@ -38,36 +38,38 @@ class Fixture:
     column_names: tuple[str, ...] = ()
     # Shared dataset attributes:
     n_imgs: int = N_IMGS_TS03
-    ts_relpath: Path = TS_FILE
 
 
-class ImodCtfTestDataFiles(Enum):
-    plain_estimation = Fixture(
+class ImodTestDataFiles(Enum):
+    defocus_plain_estimation = Fixture(
         relpath=CTF_DATA_DIR / "TS_03_plain_estimation.defocus",
         imod_flag=0,
         column_names=DEFOCUS_COMMON_FIELDS,
     )
-    only_astigmatism = Fixture(
+    defocus_only_astigmatism = Fixture(
         relpath=CTF_DATA_DIR / "TS_03_only_astigmatism.defocus",
         imod_flag=1,
         column_names=DEFOCUS_COMMON_FIELDS + (DEFOCUS_V, DEFOCUS_ANGLE),
     )
-    only_phase_shift = Fixture(
+    defocus_only_phase_shift = Fixture(
         relpath=CTF_DATA_DIR / "TS_03_only_phase_shift.defocus",
         imod_flag=4,
         column_names=DEFOCUS_COMMON_FIELDS + (PHASE_SHIFT,),
     )
-    astig_and_phase_shift = Fixture(
+    defocus_astig_and_phase_shift = Fixture(
         relpath=CTF_DATA_DIR / "TS_03_astigmatism_and_phase_shift.defocus",
         imod_flag=5,
         column_names=DEFOCUS_COMMON_FIELDS + (DEFOCUS_V, DEFOCUS_ANGLE, PHASE_SHIFT),
     )
-    astig_phase_shift_and_cutoff_freq = Fixture(
+    defocus_astig_phase_shift_and_cutoff_freq = Fixture(
         relpath=CTF_DATA_DIR / "TS_03_astigmatism_phase_shift_and_cutoff_freq.defocus",
         imod_flag=37,
         column_names=DEFOCUS_COMMON_FIELDS
         + (DEFOCUS_V, DEFOCUS_ANGLE, PHASE_SHIFT, CUTOFF_FREQ),
     )
+    ts_03_mrcs = Fixture(relpath=TS_DATA_DIR / "TS_03.mrcs")
+    ts_03_tlt = Fixture(relpath=TS_DATA_DIR / "TS_03.tlt")
+    ts_03_xf = Fixture(relpath=ALI_DATA_DIR / "TS_03.xf")
 
     @property
     def relpath(self) -> Path:
@@ -104,28 +106,8 @@ class ImodCtfTestDataFiles(Enum):
     def n_imgs(self) -> int:
         return self.value.n_imgs
 
-    @property
-    def ts_path(self) -> Path:
-        """Absolute, validated tilt-series path (shared across fixtures)."""
-        p = (TEST_DATA_ROOT / self.value.ts_relpath).resolve()
-        if not p.is_file():
-            folder = p.parent
-            siblings = (
-                "\n  - "
-                + "\n  - ".join(sorted(f.name for f in folder.glob("*") if f.is_file()))
-                if folder.exists()
-                else " (folder missing)"
-            )
-            raise FileNotFoundError(
-                f"Tilt-series file not found: {p}\nSiblings in {folder}:{siblings}"
-            )
-        return p
-
     def open(self, mode: str = "rb"):
         return self.path.open(mode)
-
-    def open_ts(self, mode: str = "rb"):
-        return self.ts_path.open(mode)
 
 
 # # Access file + metadata
