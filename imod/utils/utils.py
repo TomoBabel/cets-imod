@@ -1,11 +1,12 @@
 import os
+import traceback
 from pathlib import Path
 from pydantic import BaseModel
 from typing import Tuple, get_args, get_origin, Union, get_type_hints, List, Dict, Type
 import mrcfile
 import numpy as np
 
-from cets_data_model.models.models import CTFMetadata
+from cets_data_model.models.models import CTFMetadata, TiltSeries
 from imod.contants import MRC_MRCS_EXT
 
 
@@ -163,6 +164,86 @@ def get_acq_order_from_doses(dose_list: List[float]) -> List[int]:
         acq_order_list[finalIndex] = i + 1
 
     return acq_order_list
+
+
+def write_tlt(
+    cets_ts_md: TiltSeries, tlt_file: Path | str | None, add_dose_to_tlt: bool = False
+) -> None:
+    if tlt_file is None:
+        print("write_tlt -> tlt_file is None. Skipping...")
+        return
+    try:
+        tlt_file = _validate_new_file(tlt_file)
+        tilt_angles: list[float]
+        dose_list: list[float] = []
+        # Read the required data
+        tilt_angles = [ti.nominal_tilt_angle for ti in cets_ts_md.images]
+        if add_dose_to_tlt:
+            dose_list = [ti.accumulated_dose for ti in cets_ts_md.images]
+            # Check the dose_list as it can be None if not provided by the cets_ts_md
+            if all(dose in [None, "None"] for dose in dose_list):
+                print(
+                    f"Dose was requested to be added to the tlt file "
+                    f"\n{tlt_file}, "
+                    f"but it will not be added because it is None in all "
+                    f"the tilt images contained in the current tilt-series "
+                    f"\n{cets_ts_md.path}"
+                )
+                dose_list = []
+
+        # Write the file
+        with open(tlt_file, "w") as f:
+            if dose_list:
+                f.writelines(
+                    f"{angle:0.3f} {dose:0.4f}\n"
+                    for angle, dose in zip(tilt_angles, dose_list)
+                )
+            else:
+                f.writelines(f"{angle:0.3f}\n" for angle in tilt_angles)
+        print(f"tlt file successfully written! -> {tlt_file}")
+    except Exception as e:
+        print(
+            f"Unable to write the output tlt file {tlt_file} with the exception -> {e}"
+        )
+        print(traceback.format_exc())
+
+
+def write_xf(cets_ts_md: TiltSeries, xf_file: Path | str | None) -> None:
+    if xf_file is None:
+        print("write_xf -> xf_file is None. Skipping...")
+        return
+    try:
+        xf_file = _validate_new_file(xf_file)
+        # Read the required data
+        transform_list = []
+        for ti in cets_ts_md.images:
+            transform = ti.coordinate_transformations[0].affine
+            matrix_elements = np.array(transform).flatten()
+            transform_list.append(
+                [
+                    f"{matrix_elements[0]:.7f}",
+                    f"{matrix_elements[1]:.7f}",
+                    f"{matrix_elements[3]:.7f}",
+                    f"{matrix_elements[4]:.7f}",
+                    f"{float(f'{matrix_elements[2]:.3g}'):>6}",
+                    f"{float(f'{matrix_elements[5]:.3g}'):>6}",
+                ]
+            )
+        # write the xf_file
+        with open(xf_file, "w") as f:
+            for row in transform_list:
+                f.write("\t".join(str(item) for item in row) + "\n")
+        print(f"xf file successfully written! -> {xf_file}")
+    except Exception as e:
+        print(f"Unable to write the output xf file {xf_file} with the exception -> {e}")
+        print(traceback.format_exc())
+
+
+def _validate_new_file(in_file: Path | str) -> Path:
+    in_file = Path(in_file).expanduser()
+    if in_file.exists():
+        in_file.unlink()  # Remove the file
+    return in_file
 
 
 def standarize_defocus(

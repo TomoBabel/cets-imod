@@ -1,6 +1,9 @@
+import traceback
 from pathlib import Path
 from typing import Optional, List
 import numpy as np
+import yaml
+
 from cets_data_model.models.models import (
     Affine,
     CTFMetadata,
@@ -17,6 +20,9 @@ from imod.utils.utils import (
     parse_xf_file,
     validate_ctf_md_list,
     validate_even_odd_files,
+    write_tlt,
+    write_xf,
+    _validate_new_file,
 )
 
 
@@ -50,22 +56,27 @@ class ImodTiltSeries:
         even_file_name: str | Path | None = None,
         odd_file_name: str | Path | None = None,
         ctf_corrected: bool = False,
+        out_yaml_file: str | Path | None = None,
     ) -> TiltSeries:
         """Converts an IMOD tilt-series into CETS metadata.
 
         :param xf_file: xf alignment file. If not provided, the Identity matrix
         will be used as alignment data.
-        :type xf_file: pathlib.Path, optional
+        :type xf_file: pathlib.Path or str, optional
 
         :param even_file_name: path of the even tomogram,
-        :type even_file_name: pathlib.Path, optional
+        :type even_file_name: pathlib.Path or str, optional
 
         :param odd_file_name: path of the even tomogram,
-        :type odd_file_name: pathlib.Path, optional
+        :type odd_file_name: pathlib.Path or str, optional
 
         :param ctf_corrected: xFlag to indicate if the tomogram was reconstructed
         from a tilt-series with the ctf corrected.
         :type ctf_corrected: bool, optional
+
+        :param out_yaml_file: name of the yaml file in which the tilt-series
+        metadata will be written.
+        :type out_yaml_file: pathlib.Path or str, optional
         """
         # Validate even/odd
         even_file_name, odd_file_name = validate_even_odd_files(
@@ -104,30 +115,41 @@ class ImodTiltSeries:
                 odd_path=str(odd_file_name),
             )
             ti_list.append(ti)
-        return TiltSeries(
+        ts = TiltSeries(
             images=ti_list,
             path=ts_filename,
         )
+        # Write the output yaml file if requested
+        self._write_ts_yaml(ts, out_yaml_file)
+        return ts
 
+    @staticmethod
     def cets_to_imod(
-        self,
+        cets_ts_md: TiltSeries,
         tlt_file: str | Path,
-        add_dose_to_tlt: Optional[bool] = True,
-        xf_file: Optional[str | Path] = None,
+        add_dose_to_tlt: bool = True,
+        xf_file: str | Path | None = None,
     ):
         """Converts CETS Tilt-series metadata into IMOD files.
 
+        :param cets_ts_md: CETS tilt-series metadata.
+        :type cets_ts_md: pathlib.Path or str
+
         :param tlt_file: output tlt file to be generated.
-        :type tlt_file: pathlib.Path
+        :type tlt_file: pathlib.Path or str
 
         :param add_dose_to_tlt: used to indicate if the generated tlt file should also
         contain a second column with the dose.
         :type add_dose_to_tlt: bool, optional, Defaults to True
 
         :param xf_file: output xf file to be generated.
-        :type: pathlib.Path, optional
+        :type: pathlib.Path or str, optional, Defaults to None
         """
-        pass
+        # Write the tlt file
+        write_tlt(cets_ts_md, tlt_file, add_dose_to_tlt=add_dose_to_tlt)
+        if xf_file is not None:
+            # Write the xf file
+            write_xf(cets_ts_md, xf_file)
 
     def _genTransform(
         self, xf_matrix: np.ndarray, pix_size: float
@@ -151,3 +173,21 @@ class ImodTiltSeries:
         row1[-1] *= pix_size  # shift_x: convert to angstroms
         row2[-1] *= pix_size  # shift_y: convert to angstroms
         return [row1, row2, xf_matrix[2]]
+
+    @staticmethod
+    def _write_ts_yaml(cets_ts_md: TiltSeries, yaml_file: Path | str | None) -> None:
+        if yaml_file is None:
+            print("write_yaml -> yaml_file is None. Skipping...")
+            return
+        try:
+            yaml_file = _validate_new_file(yaml_file)
+            metadata_dict = cets_ts_md.model_dump(mode="json")
+            with open(yaml_file, "a") as f:
+                yaml.dump(metadata_dict, f, sort_keys=False, explicit_start=True)
+            print(f"yaml file successfully written! -> {yaml_file}")
+        except Exception as e:
+            print(
+                f"Unable to write the output yaml file {yaml_file} with "
+                f"the exception -> {e}"
+            )
+            print(traceback.format_exc())
