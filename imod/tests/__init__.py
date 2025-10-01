@@ -14,6 +14,7 @@ TEST_DATA_ROOT: Final[Path] = Path(
 CTF_DATA_DIR: Final[Path] = Path("imod_defocus_files")
 TS_DATA_DIR: Final[Path] = Path("tilt_series")
 ALI_DATA_DIR: Final[Path] = Path("alignment_files")
+TOMOGRAMS_DIR: Final[Path] = Path("tomograms")
 
 # Dataset-wide metadata
 N_IMGS_TS03: Final[int] = 40
@@ -70,6 +71,7 @@ class ImodTestDataFiles(Enum):
     ts_03_mrcs = Fixture(relpath=TS_DATA_DIR / "TS_03.mrcs")
     ts_03_tlt = Fixture(relpath=TS_DATA_DIR / "TS_03.tlt")
     ts_03_xf = Fixture(relpath=ALI_DATA_DIR / "TS_03.xf")
+    ts_03_tomogram = Fixture(relpath=TOMOGRAMS_DIR / "TS_03.mrc")
 
     @property
     def relpath(self) -> Path:

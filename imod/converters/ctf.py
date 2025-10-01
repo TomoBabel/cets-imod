@@ -25,7 +25,7 @@ class ImodCtfSeries:
         """Reads a .defocus file and generates a list of CETS CTFMetada objects,
         one per tilt-image.
 
-                :param out_yaml_file: name of the yaml file in which the tilt-series
+        :param out_yaml_file: name of the yaml file in which the CTF
         metadata will be written.
         :type out_yaml_file: pathlib.Path or str, optional
         """
