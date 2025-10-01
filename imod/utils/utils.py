@@ -1,6 +1,7 @@
 import os
 import traceback
 from pathlib import Path
+
 from pydantic import BaseModel
 from typing import Tuple, get_args, get_origin, Union, get_type_hints, List, Dict, Type
 import mrcfile
@@ -173,7 +174,7 @@ def write_tlt(
         print("write_tlt -> tlt_file is None. Skipping...")
         return
     try:
-        tlt_file = _validate_new_file(tlt_file)
+        tlt_file = validate_new_file(tlt_file)
         tilt_angles: list[float]
         dose_list: list[float] = []
         # Read the required data
@@ -213,20 +214,24 @@ def write_xf(cets_ts_md: TiltSeries, xf_file: Path | str | None) -> None:
         print("write_xf -> xf_file is None. Skipping...")
         return
     try:
-        xf_file = _validate_new_file(xf_file)
+        xf_file = validate_new_file(xf_file)
         # Read the required data
+        pixel_size = cets_ts_md.images[0].pixel_size
         transform_list = []
         for ti in cets_ts_md.images:
             transform = ti.coordinate_transformations[0].affine
             matrix_elements = np.array(transform).flatten()
+            # The shifts are stored in angstroms in CETS, but in pixels in IMOD
+            sx = matrix_elements[2] / pixel_size
+            sy = matrix_elements[5] / pixel_size
             transform_list.append(
                 [
                     f"{matrix_elements[0]:.7f}",
                     f"{matrix_elements[1]:.7f}",
                     f"{matrix_elements[3]:.7f}",
                     f"{matrix_elements[4]:.7f}",
-                    f"{float(f'{matrix_elements[2]:.3g}'):>6}",
-                    f"{float(f'{matrix_elements[5]:.3g}'):>6}",
+                    f"{float(f'{sx:.3g}'):>6}",
+                    f"{float(f'{sy:.3g}'):>6}",
                 ]
             )
         # write the xf_file
@@ -239,7 +244,7 @@ def write_xf(cets_ts_md: TiltSeries, xf_file: Path | str | None) -> None:
         print(traceback.format_exc())
 
 
-def _validate_new_file(in_file: Path | str) -> Path:
+def validate_new_file(in_file: Path | str) -> Path:
     in_file = Path(in_file).expanduser()
     if in_file.exists():
         in_file.unlink()  # Remove the file
@@ -298,8 +303,9 @@ def _cast_value(value: str, target_type: type):
         return None
 
 
-def load_md_list_yaml(yaml_file: Path, model_cls: Type[BaseModel]) -> List[Dict]:
+def load_md_list_yaml(yaml_file: Path | str, model_cls: Type[BaseModel]) -> List[Dict]:
     """Loads a .yaml file containing a list of"""
+    yaml_file = validate_file(yaml_file, "yaml_file", ".yaml")
     with open(yaml_file, "r") as f:
         lines = [line.strip() for line in f if line.strip()]
 
@@ -325,3 +331,43 @@ def load_md_list_yaml(yaml_file: Path, model_cls: Type[BaseModel]) -> List[Dict]
         else:
             position += 1
     return metadata_list
+
+
+# def load_md_list_yaml(yaml_file: Path | str, model_cls: Type[BaseModel]) -> List[Dict]:
+#     """
+#     Loads a .yaml file which may contain a single document or MULTIPLE documents
+#     (separated by '---'), and validates the 'images' list within each against
+#     the Pydantic model.
+#     """
+#     yaml_file = validate_file(yaml_file, "yaml_file", ".yaml")
+#
+#     all_metadata_list = []
+#
+#     with open(yaml_file, "r") as f:
+#         # Usa yaml.load_all() para iterar sobre todos los documentos en el archivo
+#         yaml_documents = yaml.load_all(f, Loader=yaml.FullLoader)
+#
+#         for data in yaml_documents:
+#             # Manejar el caso de un documento vacío (que load_all podría devolver como None)
+#             if data is None:
+#                 continue
+#
+#             # Asumimos que cada documento tiene la estructura esperada: un dict con clave 'images'
+#             if not isinstance(data, dict) or 'images' not in data or not isinstance(data['images'], list):
+#                 print(f"Warning: Skipping a document with unexpected structure: {data}")
+#                 continue
+#
+#             # Iterar sobre la lista de entradas de 'images' de este documento
+#             for entry_data in data['images']:
+#                 try:
+#                     # Validar y estructurar con Pydantic
+#                     validated_model = model_cls.model_validate(entry_data)
+#
+#                     # Añadir a la lista total
+#                     all_metadata_list.append(validated_model.model_dump())
+#
+#                 except ValidationError as e:
+#                     print(f"Validation failed for an entry in the YAML file:\n{entry_data}\nError: {e}")
+#                     # Manejo de error: podrías continuar o lanzar la excepción
+#
+#     return all_metadata_list

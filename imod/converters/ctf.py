@@ -1,7 +1,8 @@
 import math
+import traceback
 from pathlib import Path
 from typing import List, Tuple, Dict
-
+import yaml
 from cets_data_model.models.models import CTFMetadata
 from imod.contants import MRC_MRCS_EXT
 from imod.utils.utils import (
@@ -9,6 +10,7 @@ from imod.utils.utils import (
     standarize_defocus,
     load_md_list_yaml,
     validate_file,
+    validate_new_file,
 )
 
 
@@ -17,16 +19,23 @@ class ImodCtfSeries:
         self.ts_file_name = validate_file(ts_file_name, "ts_file_name", MRC_MRCS_EXT)
         self.defocus_file = validate_file(defocus_file, "defocus_file", ".defocus")
 
-    def imod_to_cets(self) -> List[CTFMetadata]:
+    def imod_to_cets(
+        self, out_yaml_file: str | Path | None = None
+    ) -> List[CTFMetadata]:
         """Reads a .defocus file and generates a list of CETS CTFMetada objects,
-        one per tilt-image."""
-        return self._parse_defocus_file()
+        one per tilt-image.
+
+                :param out_yaml_file: name of the yaml file in which the tilt-series
+        metadata will be written.
+        :type out_yaml_file: pathlib.Path or str, optional
+        """
+        return self._parse_defocus_file(out_yaml_file=out_yaml_file)
 
     @staticmethod
     def cets_to_imod(
-        ctf_yaml_file: Path,
+        ctf_yaml_file: Path | str,
         tilt_angle_list: List[float],
-        output_defocus_file: Path,
+        defocus_file: Path,
     ) -> None:
         """Reads a .yaml file containing the serialized CETS CTFMetadata objects of
         all the tilt-images that compose a tilt-series and generates the corresponding
@@ -40,7 +49,7 @@ class ImodCtfSeries:
                 f"The number of data sections [{n_data_sec}] must be the same "
                 f"as the number of angles [{n_angles}] provided."
             )
-        with open(output_defocus_file, "w") as f:
+        with open(defocus_file, "w") as f:
             lines = ["1\t0\t0.0\t0.0\t0.0\t3\n"]
             for i, ctf_md_dict in enumerate(md_list):
                 ind = i + 1  # Indices in IMOD start in 1
@@ -57,8 +66,11 @@ class ImodCtfSeries:
 
                 lines.append(newLine)
             f.writelines(lines)
+        print(f"defocus file successfully writen! -> {defocus_file}")
 
-    def _parse_defocus_file(self) -> List[CTFMetadata]:
+    def _parse_defocus_file(
+        self, out_yaml_file: str | Path | None = None
+    ) -> List[CTFMetadata]:
         """Parse tilt-series ctf estimation file."""
         defocusFileFlag = self._get_defocus_file_flag()
         (defocus_u_dict, defocus_v_dict, defocus_angle_dict, phase_shift_dict) = (
@@ -196,6 +208,8 @@ class ImodCtfSeries:
                     phase_shift=phase_shift,
                 )
             )
+        # Write the output yaml file if requested
+        self._write_ctf_yaml(ctf_md_list, out_yaml_file)
         return ctf_md_list
 
     def _get_defocus_file_flag(self) -> int:
@@ -471,6 +485,27 @@ class ImodCtfSeries:
             defocus_angle_dict,
             phase_shift_dict,
         )
+
+    @staticmethod
+    def _write_ctf_yaml(
+        cets_ctf_md_list: List[CTFMetadata], yaml_file: Path | str | None
+    ) -> None:
+        if yaml_file is None:
+            print("write_yaml -> yaml_file is None. Skipping...")
+            return
+        try:
+            yaml_file = validate_new_file(yaml_file)
+            with open(yaml_file, "a") as file:
+                for metadata in cets_ctf_md_list:
+                    metadata_dict = metadata.model_dump()
+                    yaml.dump(metadata_dict, file, sort_keys=False, explicit_start=True)
+            print(f"yaml file successfully written! -> {yaml_file}")
+        except Exception as e:
+            print(
+                f"Unable to write the output yaml file {yaml_file} with "
+                f"the exception -> {e}"
+            )
+            print(traceback.format_exc())
 
 
 # # READER EXAMPLE

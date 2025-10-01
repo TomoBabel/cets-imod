@@ -22,7 +22,8 @@ from imod.utils.utils import (
     validate_even_odd_files,
     write_tlt,
     write_xf,
-    _validate_new_file,
+    validate_new_file,
+    load_md_list_yaml,
 )
 
 
@@ -125,15 +126,15 @@ class ImodTiltSeries:
 
     @staticmethod
     def cets_to_imod(
-        cets_ts_md: TiltSeries,
+        cets_ts: TiltSeries | Path | str,
         tlt_file: str | Path,
         add_dose_to_tlt: bool = True,
         xf_file: str | Path | None = None,
     ):
         """Converts CETS Tilt-series metadata into IMOD files.
 
-        :param cets_ts_md: CETS tilt-series metadata.
-        :type cets_ts_md: pathlib.Path or str
+        :param cets_ts: CETS tilt-series metadata or a yaml file written from it.
+        :type cets_ts: TiltSeries or pathlib.Path or str
 
         :param tlt_file: output tlt file to be generated.
         :type tlt_file: pathlib.Path or str
@@ -145,11 +146,13 @@ class ImodTiltSeries:
         :param xf_file: output xf file to be generated.
         :type: pathlib.Path or str, optional, Defaults to None
         """
+        if type(cets_ts) is not TiltSeries:
+            cets_ts = load_md_list_yaml(cets_ts, TiltSeries)
         # Write the tlt file
-        write_tlt(cets_ts_md, tlt_file, add_dose_to_tlt=add_dose_to_tlt)
+        write_tlt(cets_ts, tlt_file, add_dose_to_tlt=add_dose_to_tlt)
         if xf_file is not None:
             # Write the xf file
-            write_xf(cets_ts_md, xf_file)
+            write_xf(cets_ts, xf_file)
 
     def _genTransform(
         self, xf_matrix: np.ndarray, pix_size: float
@@ -180,7 +183,7 @@ class ImodTiltSeries:
             print("write_yaml -> yaml_file is None. Skipping...")
             return
         try:
-            yaml_file = _validate_new_file(yaml_file)
+            yaml_file = validate_new_file(yaml_file)
             metadata_dict = cets_ts_md.model_dump(mode="json")
             with open(yaml_file, "a") as f:
                 yaml.dump(metadata_dict, f, sort_keys=False, explicit_start=True)
