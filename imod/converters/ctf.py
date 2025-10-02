@@ -101,7 +101,7 @@ class ImodCtfSeries:
             )
 
         elif defocusFileFlag == 37:
-            # Astigmatism, phase shift and cut-on frequency estimation "
+            # Astigmatism, phase shift and cut-on frequency estimation
             defocus_u_dict, defocus_v_dict, defocus_angle_dict, phase_shift_dict, _ = (
                 self._load_ctf_file(defocusFileFlag)
             )

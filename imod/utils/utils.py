@@ -82,16 +82,17 @@ def validate_tilt_angle_list(
 def validate_ctf_md_list(
     ctf_md_list: List[CTFMetadata] | None, expected_n_elements: int
 ) -> List[CTFMetadata] | None:
-    if ctf_md_list is not None:
-        if not all(type(elem) is CTFMetadata for elem in ctf_md_list):
-            raise TypeError(
-                "All the elements in the ctf metadata provided must be of type CTFMetadata"
-            )
-        n_ctf_md = len(ctf_md_list)
-        if n_ctf_md != expected_n_elements:
-            raise ValueError(
-                f"Expected {expected_n_elements} CTFMetadata elements, but got {n_ctf_md}."
-            )
+    if ctf_md_list is None:
+        return ctf_md_list
+    if not all(type(elem) is CTFMetadata for elem in ctf_md_list):
+        raise TypeError(
+            "All the elements in the ctf metadata provided must be of type CTFMetadata"
+        )
+    n_ctf_md = len(ctf_md_list)
+    if n_ctf_md != expected_n_elements:
+        raise ValueError(
+            f"Expected {expected_n_elements} CTFMetadata elements, but got {n_ctf_md}."
+        )
     return ctf_md_list
 
 
