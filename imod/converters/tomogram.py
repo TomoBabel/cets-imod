@@ -5,12 +5,12 @@ import yaml
 
 from cets_data_model.models.models import Tomogram
 from cets_data_model.utils.image_utils import get_mrc_info
-from imod.utils.utils import validate_even_odd_files, validate_new_file
+from imod.utils.utils import validate_even_odd_files, validate_new_file, validate_file
 
 
 class ImodTomogram:
     def __init__(self, tomo_file: Path | str) -> None:
-        self.file_name = tomo_file
+        self.file_name = validate_file(tomo_file, "tomo_file", ".mrc")
 
     def imod_to_cets(
         self,
@@ -44,6 +44,7 @@ class ImodTomogram:
         image_info_obj = get_mrc_info(tomo_filename)
         tomo = Tomogram(
             path=tomo_filename,
+            tomo_id=self.file_name.stem,
             width=image_info_obj.size_x,
             height=image_info_obj.size_y,
             depth=image_info_obj.size_z,

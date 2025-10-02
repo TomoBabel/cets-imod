@@ -93,6 +93,8 @@ class ImodTiltSeries:
         in_transform_matrix = parse_xf_file(xf_file)
 
         ts_filename = str(self.ts_file_name)
+        ts_id = self.ts_file_name.stem
+        pixel_size = img_info.apix_x
         ti_list = []
         for index in range(self.n_imgs):
             output_transform_matrix = in_transform_matrix[:, :, index]
@@ -108,17 +110,19 @@ class ImodTiltSeries:
                 coordinate_transformations=self._genTransform(
                     output_transform_matrix, pix_size
                 ),
-                ts_id=self.ts_file_name.stem,
+                ts_id=ts_id,
                 acq_order=self.acq_orders[index] if self.acq_orders else None,
-                pixel_size=img_info.apix_x,
-                ctf_corrected=ctf_corrected,
-                even_path=str(even_file_name),
-                odd_path=str(odd_file_name),
+                pixel_size=pixel_size,
             )
             ti_list.append(ti)
         ts = TiltSeries(
-            images=ti_list,
             path=ts_filename,
+            ts_id=ts_id,
+            pixel_size=pixel_size,
+            ctf_corrected=ctf_corrected,
+            even_path=str(even_file_name),
+            odd_path=str(odd_file_name),
+            images=ti_list,
         )
         # Write the output yaml file if requested
         self._write_ts_yaml(ts, out_yaml_file)
