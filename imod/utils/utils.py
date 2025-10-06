@@ -100,7 +100,9 @@ def parse_tlt_file(tlt_file_name) -> Tuple[List[float], List[float], List[int]]:
     """Parse the IMOD tlt file, that can contain 1 column (tilt-angles), 2
     (tilt-angles and accumulated dose) or 3 (tilt-angles, accumulated dose and
     acquisition order)."""
-    angles, doses, orders = [], [], []
+    angles: List[float] = []
+    doses: List[float] = []
+    orders: List[int] = []
     with open(tlt_file_name) as f:
         for line in f:
             strippedLine = line.strip()
