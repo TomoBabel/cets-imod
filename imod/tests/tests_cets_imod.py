@@ -77,26 +77,55 @@ class CetsImodDefocusReaderTest(CetsImodBaseTest):
         # CTF metadata
         ics = ImodCtfSeries(ts_file_name=self.ts_fn, defocus_file=defocus_testdata.path)
         cets_ctf_md_list = ics.imod_to_cets(out_yaml_file=self.yaml_file_ctf)
-
         # Check the metadata generated
         self._check_data(defocus_testdata, cets_ctf_md_list, self.yaml_file_ctf)
 
-    def test_imod_to_cets_01(self):
+    def test_ctf_imod_to_cets_01(self):
         defocus_testdata = ImodTestDataFiles.defocus_plain_estimation
         self._run_test_imod_to_cets(defocus_testdata)
 
-    def test_imod_to_cets_02(self):
+    def test_ctf_imod_to_cets_02(self):
         defocus_testdata = ImodTestDataFiles.defocus_only_astigmatism
         self._run_test_imod_to_cets(defocus_testdata)
 
-    def test_imod_to_cets_03(self):
+    def test_ctf_imod_to_cets_03(self):
         defocus_testdata = ImodTestDataFiles.defocus_only_phase_shift
         self._run_test_imod_to_cets(defocus_testdata)
 
-    def test_imod_to_cets_04(self):
+    def test_ctf_imod_to_cets_04(self):
         defocus_testdata = ImodTestDataFiles.defocus_astig_and_phase_shift
         self._run_test_imod_to_cets(defocus_testdata)
 
-    def test_imod_to_cets_05(self):
+    def test_ctf_imod_to_cets_05(self):
         defocus_testdata = ImodTestDataFiles.defocus_astig_phase_shift_and_cutoff_freq
         self._run_test_imod_to_cets(defocus_testdata)
+
+
+class CetsImodTsReaderTest(CetsImodBaseTest):
+    yaml_file_ts = Path()
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.yaml_file_ts = cls.test_dir / "TS_03_cets_ts.yaml"
+
+    def test_ts_imod_to_cets(self):
+        # print("\n ===> Running IMOD to CETS tilt-series")
+        # # Generate the CTF metadata
+        # ics = ImodCtfSeries(
+        #     ts_file_name=self.ts_fn,
+        #     defocus_file=ImodTestDataFiles.defocus_only_astigmatism.path,
+        # )
+        # cets_ctf_md_list = ics.imod_to_cets()
+        # # TS Metadata
+        # its = ImodTiltSeries(
+        #     ts_file_name=self.ts_fn,
+        #     tilt_angles=self.tlt_fn,
+        #     ctf_md_list=cets_ctf_md_list,
+        # )
+        # cets_ts_md = its.imod_to_cets(
+        #     xf_file=self.xf_fn, out_yaml_file=self.yaml_file_ts
+        # )
+        # Check the metadata generated
+        # TODO finish this once the data model is decided
+        raise Exception("finish this once the data model is decided")
