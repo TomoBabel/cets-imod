@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 import os
-from typing import Final
+from typing import Final, List
 
 # Test root
 TEST_DATA_ROOT: Final[Path] = Path(
@@ -18,12 +18,13 @@ TOMOGRAMS_DIR: Final[Path] = Path("tomograms")
 
 # Dataset-wide metadata
 N_IMGS_TS03: Final[int] = 40
+DEFOCUS_U: Final[str] = "defocus_u"
 DEFOCUS_COMMON_FIELDS: Final[tuple[str, ...]] = (
     "index_u",
     "index_v",
     "angle_u",
     "angle_v",
-    "defocus_u",
+    DEFOCUS_U,
 )
 DEFOCUS_V: Final[str] = "defocus_v"
 DEFOCUS_ANGLE: Final[str] = "defocus_angle"
@@ -35,8 +36,9 @@ CUTOFF_FREQ: Final[str] = "cutoff_freq"
 @dataclass(frozen=True)
 class Fixture:
     relpath: Path
-    imod_flag: int | None = None
+    imod_flag: int = -1
     column_names: tuple[str, ...] = ()
+    description: str = ""
     # Shared dataset attributes:
     n_imgs: int = N_IMGS_TS03
 
@@ -46,27 +48,32 @@ class ImodTestDataFiles(Enum):
         relpath=CTF_DATA_DIR / "TS_03_plain_estimation.defocus",
         imod_flag=0,
         column_names=DEFOCUS_COMMON_FIELDS,
+        description="CTF - plain estimation",
     )
     defocus_only_astigmatism = Fixture(
         relpath=CTF_DATA_DIR / "TS_03_only_astigmatism.defocus",
         imod_flag=1,
         column_names=DEFOCUS_COMMON_FIELDS + (DEFOCUS_V, DEFOCUS_ANGLE),
+        description="CTF - only astigmatism",
     )
     defocus_only_phase_shift = Fixture(
         relpath=CTF_DATA_DIR / "TS_03_only_phase_shift.defocus",
         imod_flag=4,
         column_names=DEFOCUS_COMMON_FIELDS + (PHASE_SHIFT,),
+        description="CTF - only phase shift",
     )
     defocus_astig_and_phase_shift = Fixture(
         relpath=CTF_DATA_DIR / "TS_03_astigmatism_and_phase_shift.defocus",
         imod_flag=5,
         column_names=DEFOCUS_COMMON_FIELDS + (DEFOCUS_V, DEFOCUS_ANGLE, PHASE_SHIFT),
+        description="CTF - astigmatism and phase shift",
     )
     defocus_astig_phase_shift_and_cutoff_freq = Fixture(
         relpath=CTF_DATA_DIR / "TS_03_astigmatism_phase_shift_and_cutoff_freq.defocus",
         imod_flag=37,
         column_names=DEFOCUS_COMMON_FIELDS
         + (DEFOCUS_V, DEFOCUS_ANGLE, PHASE_SHIFT, CUTOFF_FREQ),
+        description="CTF - astigmatism, phase shift and cutoff frequency",
     )
     ts_03_mrcs = Fixture(relpath=TS_DATA_DIR / "TS_03.mrcs")
     ts_03_tlt = Fixture(relpath=TS_DATA_DIR / "TS_03.tlt")
@@ -97,7 +104,7 @@ class ImodTestDataFiles(Enum):
         return p
 
     @property
-    def imod_flag(self) -> int | None:
+    def imod_flag(self) -> int:
         return self.value.imod_flag
 
     @property
@@ -108,8 +115,44 @@ class ImodTestDataFiles(Enum):
     def n_imgs(self) -> int:
         return self.value.n_imgs
 
-    def open(self, mode: str = "rb"):
-        return self.path.open(mode)
+    @property
+    def description(self) -> str:
+        return self.value.description
+
+    # def open(self, mode: str = "rb"):
+    #     return self.path.open(mode)
+
+    def get_test_dict_list(self) -> List[dict]:
+        with open(self.path, "r") as f:
+            lines = f.readlines()
+
+        # Convert lines to list of lists of values
+        data = []
+        for line in lines:
+            parts = line.strip().split()
+            row = []
+            for part in parts:
+                value = float(part)
+                if value.is_integer():
+                    value = int(value)
+                row.append(value)
+            data.append(row)
+
+        # Adjust based on imod_flag
+        keys = self.column_names
+        if self.imod_flag == 0:
+            if len(data) > 0 and len(data[0]) > len(keys):
+                data[0] = data[0][: len(keys)]
+        elif self.imod_flag > 0:
+            data = data[1:]
+
+        # Build the list of dictionaries
+        dict_list = []
+        for row in data:
+            row_dict = dict(zip(keys, row))
+            dict_list.append(row_dict)
+
+        return dict_list
 
 
 # # Access file + metadata

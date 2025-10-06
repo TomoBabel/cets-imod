@@ -102,7 +102,7 @@ class ImodCtfSeries:
 
         elif defocusFileFlag == 37:
             # Astigmatism, phase shift and cut-on frequency estimation
-            defocus_u_dict, defocus_v_dict, defocus_angle_dict, phase_shift_dict, _ = (
+            defocus_u_dict, defocus_v_dict, defocus_angle_dict, phase_shift_dict = (
                 self._load_ctf_file(defocusFileFlag)
             )
 
@@ -174,14 +174,10 @@ class ImodCtfSeries:
             # Check that all the lists are equally long
             phase_shift = 0
             if phase_shift_list:
-                if (
-                    len(defocus_u_list) + len_phase_shift_list + len_defocus_angle_list
-                ) % 3 != 0:
+                if (len(defocus_u_list) + len_phase_shift_list) % 2 != 0:
                     raise Exception(
                         f"phase_shift_list length [{len_phase_shift_list}] must be equal to "
-                        f"defocus_u_list [{len(defocus_u_list)}], "
-                        f"defocus_v_list [{len(defocus_v_list)}] and "
-                        f"defocus_angle_list [{len_defocus_angle_list}] lengths."
+                        f"defocus_u_list [{len(defocus_u_list)}] lengths."
                     )
 
                 # PhaseShift is set equal to the middle estimation of the list
