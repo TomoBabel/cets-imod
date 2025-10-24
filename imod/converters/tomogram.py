@@ -48,7 +48,7 @@ class ImodTomogram:
             width=image_info_obj.size_x,
             height=image_info_obj.size_y,
             depth=image_info_obj.size_z,
-            voxel_size=image_info_obj.apix_x,
+            # voxel_size=image_info_obj.apix_x,
             ctf_corrected=ctf_corrected,
             even_path=str(even_file_name),
             odd_path=str(odd_file_name),

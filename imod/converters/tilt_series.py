@@ -3,13 +3,20 @@ from pathlib import Path
 from typing import Optional, List
 import numpy as np
 import yaml
-
 from cets_data_model.models.models import (
     Affine,
     CTFMetadata,
     TiltSeries,
     TiltImage,
     CoordinateTransformation,
+    CoordinateSystem,
+    Axis,
+    SpaceAxis,
+    AxisUnit,
+    AxisType,
+    Translation,
+    Vector3D,
+    Matrix3x3,
 )
 from cets_data_model.utils.image_utils import get_mrc_info
 from imod.contants import MRC_MRCS_EXT
@@ -87,17 +94,22 @@ class ImodTiltSeries:
         img_info = get_mrc_info(self.ts_file_name)
         width = img_info.size_x
         height = img_info.size_y
-        pix_size = img_info.apix_x
+        # pix_size = img_info.apix_x
         # Parse xf file
         xf_file = validate_file(xf_file, "xf_file", ".xf")
-        in_transform_matrix = parse_xf_file(xf_file)
+        in_rotation_matrix_pile, in_translation_vector_pile = parse_xf_file(xf_file)
 
         ts_filename = str(self.ts_file_name)
         ts_id = self.ts_file_name.stem
         pixel_size = img_info.apix_x
+        axis_xy = Axis(
+            name=SpaceAxis.XY, axis_unit=AxisUnit.pixel, axis_type=AxisType.space
+        )
+        coordinate_systems = CoordinateSystem(name="IMOD", axes=[axis_xy])
         ti_list = []
         for index in range(self.n_imgs):
-            output_transform_matrix = in_transform_matrix[:, :, index]
+            output_translation_transform = in_translation_vector_pile[:, index]
+            output_rotation_matrix = in_rotation_matrix_pile[:, :, index]
             ti = TiltImage(
                 path=ts_filename,
                 section=index,
@@ -106,19 +118,22 @@ class ImodTiltSeries:
                 ctf_metadata=self.ctf_md_list[index] if self.ctf_md_list else None,
                 width=width,
                 height=height,
-                coordinate_systems=None,  # TODO: fill this
-                coordinate_transformations=self._genTransform(
-                    output_transform_matrix, pix_size
-                ),
+                coordinate_systems=[coordinate_systems],
+                coordinate_transformations=[
+                    self._genTranslationTransform(
+                        output_translation_transform, pixel_size
+                    ),
+                    self._genAffineTransform(output_rotation_matrix),
+                ],
                 ts_id=ts_id,
-                acq_order=self.acq_orders[index] if self.acq_orders else None,
-                pixel_size=pixel_size,
+                acquisition_order=self.acq_orders[index] if self.acq_orders else None,
+                # pixel_size=pixel_size,
             )
             ti_list.append(ti)
         ts = TiltSeries(
             path=ts_filename,
             ts_id=ts_id,
-            pixel_size=pixel_size,
+            # pixel_size=pixel_size,
             ctf_corrected=ctf_corrected,
             even_path=str(even_file_name),
             odd_path=str(odd_file_name),
@@ -158,28 +173,45 @@ class ImodTiltSeries:
             # Write the xf file
             write_xf(cets_ts, xf_file)
 
-    def _genTransform(
-        self, xf_matrix: np.ndarray, pix_size: float
-    ) -> list[CoordinateTransformation]:
-        return [
-            Affine(
-                affine=self._get_affine_values(xf_matrix, pix_size),
-                name="IMOD roto-translation from a .xf file. Shifts in angstroms.",
-                input="Aligned and projected movie frames (unaligned tilt-image)",
-                output="Aligned projection (tilt-image)",
-            )
-        ]
+    def _genAffineTransform(
+        self,
+        rotation_matrix: np.ndarray,
+    ) -> CoordinateTransformation:
+        return Affine(
+            affine=self._get_affine_values(rotation_matrix),
+            name="IMOD rotation from a .xf file.",
+            input="Tilt-image",
+            output="Aligned tilt-image (rotation-corrected)",
+        )
+
+    def _genTranslationTransform(
+        self, translation_matrix: np.ndarray, pix_size: float = 1.0
+    ) -> CoordinateTransformation:
+        return Translation(
+            translation=self._get_translation_values(translation_matrix, pix_size),
+            name="IMOD translation from a .xf file. Shifts in angstroms.",
+            input="Tilt-image",
+            output="Aligned tilt-image (translation-corrected)",
+        )
 
     @staticmethod
-    def _get_affine_values(xf_matrix: np.ndarray, pix_size: float) -> List[List[float]]:
-        """Gets the rotation angle in degrees, and the shifts in X and Y directions,
-        in angstroms."""
+    def _get_affine_values(xf_matrix: np.ndarray) -> Matrix3x3:
+        """Gets the rotation angle in degrees."""
         xf_matrix = xf_matrix.tolist()
-        row1 = xf_matrix[0]
-        row2 = xf_matrix[1]
-        row1[-1] *= pix_size  # shift_x: convert to angstroms
-        row2[-1] *= pix_size  # shift_y: convert to angstroms
-        return [row1, row2, xf_matrix[2]]
+        row1: Vector3D = xf_matrix[0]
+        row2: Vector3D = xf_matrix[1]
+        row3: Vector3D = [0, 0, 1]
+        affine_matrix: Matrix3x3 = [row1, row2, row3]
+        return affine_matrix
+
+    @staticmethod
+    def _get_translation_values(
+        translation_matrix: np.ndarray, pix_size: float = 1.0
+    ) -> Vector3D:
+        """Gets the shifts in X and Y directions, in angstroms."""
+        translation_matrix *= pix_size  # convert to angstroms
+        translation_vector: Vector3D = translation_matrix.tolist()
+        return translation_vector
 
     @staticmethod
     def _write_ts_yaml(cets_ts_md: TiltSeries, yaml_file: Path | str | None) -> None:

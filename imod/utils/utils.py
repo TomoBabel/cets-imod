@@ -134,27 +134,25 @@ def parse_tlt_file(tlt_file_name) -> Tuple[List[float], List[float], List[int]]:
     return angles, doses, orders
 
 
-def parse_xf_file(xf_file: Path) -> np.ndarray:
+def parse_xf_file(xf_file: Path) -> Tuple[np.ndarray, np.ndarray]:
     """This method takes an IMOD-based transformation matrix file (.xf) path and
-    returns a 3D matrix containing the transformation matrices for
-    each tilt-image belonging to the tilt-series."""
+    returns a 2 x 2 x n and a 1 x 2 x n  matrices containing, respectively, the
+    rotation and translation matrices for each tilt-image belonging to the tilt-series."""
 
     matrix = np.loadtxt(xf_file, dtype=float, comments="#")
     n_lines = matrix.shape[0]
-    transform_matrix = np.empty([3, 3, n_lines])
+    rotation_matrix = np.zeros([2, 3, n_lines])
+    translation_vector = np.zeros([3, n_lines])
 
     for row in range(n_lines):
-        transform_matrix[0, 0, row] = matrix[row][0]
-        transform_matrix[1, 0, row] = matrix[row][2]
-        transform_matrix[0, 1, row] = matrix[row][1]
-        transform_matrix[1, 1, row] = matrix[row][3]
-        transform_matrix[0, 2, row] = matrix[row][4]
-        transform_matrix[1, 2, row] = matrix[row][5]
-        transform_matrix[2, 0, row] = 0.0
-        transform_matrix[2, 1, row] = 0.0
-        transform_matrix[2, 2, row] = 1.0
+        rotation_matrix[0, 0, row] = matrix[row][0]
+        rotation_matrix[1, 0, row] = matrix[row][2]
+        rotation_matrix[0, 1, row] = matrix[row][1]
+        rotation_matrix[1, 1, row] = matrix[row][3]
+        translation_vector[0, row] = matrix[row][4]
+        translation_vector[1, row] = matrix[row][5]
 
-    return transform_matrix
+    return rotation_matrix, translation_vector
 
 
 def get_acq_order_from_doses(dose_list: List[float]) -> List[int]:
@@ -219,20 +217,21 @@ def write_xf(cets_ts_md: TiltSeries, xf_file: Path | str | None) -> None:
     try:
         xf_file = validate_new_file(xf_file)
         # Read the required data
-        pixel_size = cets_ts_md.images[0].pixel_size
+        # pixel_size = cets_ts_md.images[0].pixel_size
         transform_list = []
         for ti in cets_ts_md.images:
-            transform = ti.coordinate_transformations[0].affine
-            matrix_elements = np.array(transform).flatten()
+            translation = ti.coordinate_transformations[0].translation
+            rotation = ti.coordinate_transformations[1].affine
+            rot_matrix_elements = np.array(rotation).flatten()
             # The shifts are stored in angstroms in CETS, but in pixels in IMOD
-            sx = matrix_elements[2] / pixel_size
-            sy = matrix_elements[5] / pixel_size
+            sx = translation[0]  # / pixel_size
+            sy = translation[1]  # / pixel_size
             transform_list.append(
                 [
-                    f"{matrix_elements[0]:.7f}",
-                    f"{matrix_elements[1]:.7f}",
-                    f"{matrix_elements[3]:.7f}",
-                    f"{matrix_elements[4]:.7f}",
+                    f"{rot_matrix_elements[0]:.7f}",
+                    f"{rot_matrix_elements[1]:.7f}",
+                    f"{rot_matrix_elements[3]:.7f}",
+                    f"{rot_matrix_elements[4]:.7f}",
                     f"{float(f'{sx:.3g}'):>6}",
                     f"{float(f'{sy:.3g}'):>6}",
                 ]
@@ -245,6 +244,14 @@ def write_xf(cets_ts_md: TiltSeries, xf_file: Path | str | None) -> None:
     except Exception as e:
         print(f"Unable to write the output xf file {xf_file} with the exception -> {e}")
         print(traceback.format_exc())
+
+
+def _gen_roto_translation_matrix(
+    translation_vector: np.ndarray, rotation_matrix: np.ndarray
+) -> np.ndarray:
+    rotation_matrix[0, 2] = translation_vector[0]
+    rotation_matrix[1, 2] = translation_vector[1]
+    return rotation_matrix
 
 
 def validate_new_file(in_file: Path | str) -> Path:
