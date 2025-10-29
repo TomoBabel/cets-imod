@@ -61,8 +61,8 @@ class ImodTiltSeries:
     def imod_to_cets(
         self,
         xf_file: str | Path | None = None,
-        even_file_name: str | Path | None = None,
-        odd_file_name: str | Path | None = None,
+        even_stack_file_name: str | Path | None = None,
+        odd_stack_file_name: str | Path | None = None,
         ctf_corrected: bool = False,
         out_yaml_file: str | Path | None = None,
     ) -> TiltSeries:
@@ -72,11 +72,11 @@ class ImodTiltSeries:
         will be used as alignment data.
         :type xf_file: pathlib.Path or str, optional
 
-        :param even_file_name: path of the even tomogram,
-        :type even_file_name: pathlib.Path or str, optional
+        :param even_stack_file_name: path of the even tomogram,
+        :type even_stack_file_name: pathlib.Path or str, optional
 
-        :param odd_file_name: path of the even tomogram,
-        :type odd_file_name: pathlib.Path or str, optional
+        :param odd_stack_file_name: path of the even tomogram,
+        :type odd_stack_file_name: pathlib.Path or str, optional
 
         :param ctf_corrected: xFlag to indicate if the tomogram was reconstructed
         from a tilt-series with the ctf corrected.
@@ -87,8 +87,8 @@ class ImodTiltSeries:
         :type out_yaml_file: pathlib.Path or str, optional
         """
         # Validate even/odd
-        even_file_name, odd_file_name = validate_even_odd_files(
-            even_file_name, odd_file_name
+        even_stack_file_name, odd_stack_file_name = validate_even_odd_files(
+            even_stack_file_name, odd_stack_file_name
         )
         # Read image info
         img_info = get_mrc_info(self.ts_file_name)
@@ -112,6 +112,8 @@ class ImodTiltSeries:
             output_rotation_matrix = in_rotation_matrix_pile[:, :, index]
             ti = TiltImage(
                 path=ts_filename,
+                even_path=even_stack_file_name,
+                odd_path=odd_stack_file_name,
                 section=index,
                 nominal_tilt_angle=self.tilt_angles[index],
                 accumulated_dose=self.dose_list[index] if self.dose_list else None,
@@ -120,10 +122,10 @@ class ImodTiltSeries:
                 height=height,
                 coordinate_systems=[coordinate_systems],
                 coordinate_transformations=[
-                    self._genTranslationTransform(
+                    self._gen_translation_transform(
                         output_translation_transform, pixel_size
                     ),
-                    self._genAffineTransform(output_rotation_matrix),
+                    self._gen_affine_transform(output_rotation_matrix),
                 ],
                 ts_id=ts_id,
                 acquisition_order=self.acq_orders[index] if self.acq_orders else None,
@@ -135,8 +137,6 @@ class ImodTiltSeries:
             ts_id=ts_id,
             # pixel_size=pixel_size,
             ctf_corrected=ctf_corrected,
-            even_path=str(even_file_name),
-            odd_path=str(odd_file_name),
             images=ti_list,
         )
         # Write the output yaml file if requested
@@ -173,7 +173,7 @@ class ImodTiltSeries:
             # Write the xf file
             write_xf(cets_ts, xf_file)
 
-    def _genAffineTransform(
+    def _gen_affine_transform(
         self,
         rotation_matrix: np.ndarray,
     ) -> CoordinateTransformation:
@@ -184,9 +184,9 @@ class ImodTiltSeries:
             output="Aligned tilt-image (rotation-corrected)",
         )
 
-    def _genTranslationTransform(
+    def _gen_translation_transform(
         self, translation_matrix: np.ndarray, pix_size: float = 1.0
-    ) -> CoordinateTransformation:
+    ) -> Translation:
         return Translation(
             translation=self._get_translation_values(translation_matrix, pix_size),
             name="IMOD translation from a .xf file. Shifts in angstroms.",
