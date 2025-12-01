@@ -103,7 +103,7 @@ class ImodTiltSeries:
         ts_id = self.ts_file_name.stem
         pixel_size = img_info.apix_x
         axis_xy = Axis(
-            name=SpaceAxis.XY, axis_unit=AxisUnit.pixel, axis_type=AxisType.space
+            name=SpaceAxis.Z, axis_unit=AxisUnit.pixel, axis_type=AxisType.space
         )
         coordinate_systems = CoordinateSystem(name="IMOD", axes=[axis_xy])
         ti_list = []
