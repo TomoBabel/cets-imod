@@ -43,8 +43,9 @@ class ImodTomogram:
         tomo_filename = str(self.file_name)
         image_info_obj = get_mrc_info(tomo_filename)
         tomo = Tomogram(
+            id="TO BE DEFINED",  # TODO: to be defined
             path=tomo_filename,
-            tomo_id=self.file_name.stem,
+            tilt_series_id=self.file_name.stem,
             width=image_info_obj.size_x,
             height=image_info_obj.size_y,
             depth=image_info_obj.size_z,

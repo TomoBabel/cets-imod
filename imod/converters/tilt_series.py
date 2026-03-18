@@ -11,8 +11,8 @@ from cets_data_model.models.models import (
     CoordinateTransformation,
     CoordinateSystem,
     Axis,
-    SpaceAxis,
-    AxisUnit,
+    # SpaceAxis,
+    # AxisUnit,
     AxisType,
     Translation,
     Vector3D,
@@ -102,18 +102,15 @@ class ImodTiltSeries:
         ts_filename = str(self.ts_file_name)
         ts_id = self.ts_file_name.stem
         pixel_size = img_info.apix_x
-        axis_xy = Axis(
-            name=SpaceAxis.Z, axis_unit=AxisUnit.pixel, axis_type=AxisType.space
-        )
-        coordinate_systems = CoordinateSystem(name="IMOD", axes=[axis_xy])
+        axis_z = Axis(name="Z", axis_unit="angstrom", axis_type=AxisType.space)
+        coordinate_systems = CoordinateSystem(name="IMOD", axes=[axis_z])
         ti_list = []
         for index in range(self.n_imgs):
             output_translation_transform = in_translation_vector_pile[:, index]
             output_rotation_matrix = in_rotation_matrix_pile[:, :, index]
             ti = TiltImage(
+                movie_stack_id=ts_id,  # TODO: define this
                 path=ts_filename,
-                even_path=even_stack_file_name,
-                odd_path=odd_stack_file_name,
                 section=index,
                 nominal_tilt_angle=self.tilt_angles[index],
                 accumulated_dose=self.dose_list[index] if self.dose_list else None,
@@ -127,15 +124,14 @@ class ImodTiltSeries:
                     ),
                     self._gen_affine_transform(output_rotation_matrix),
                 ],
-                ts_id=ts_id,
-                acquisition_order=self.acq_orders[index] if self.acq_orders else None,
-                # pixel_size=pixel_size,
             )
             ti_list.append(ti)
         ts = TiltSeries(
+            id="TO BE DEFINED",  # TODO: define this
+            movie_stack_series_id=ts_id,  # TODO: define this
             path=ts_filename,
-            ts_id=ts_id,
-            # pixel_size=pixel_size,
+            even_path=even_stack_file_name,
+            odd_path=odd_stack_file_name,
             ctf_corrected=ctf_corrected,
             images=ti_list,
         )

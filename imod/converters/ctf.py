@@ -117,10 +117,10 @@ class ImodCtfSeries:
         for i in range(1, n_imgs + 1):
             defocus_u_list = defocus_u_dict.get(i, [])
             defocus_v_list = defocus_v_dict.get(i, [])
-            phase_shift_list = phase_shift_dict.get(i, [])
+            # phase_shift_list = phase_shift_dict.get(i, [])
             defocus_angle_list = defocus_angle_dict.get(i, [])
             len_defocus_angle_list = len(defocus_angle_list)
-            len_phase_shift_list = len(phase_shift_list)
+            # len_phase_shift_list = len(phase_shift_list)
 
             # DEFOCUS INFORMATION --------------------------------------------------------------------------------------
             if defocus_u_list and defocus_v_list:
@@ -172,26 +172,26 @@ class ImodCtfSeries:
 
             # PHASE SHIFT INFORMATION ----------------------------------------------------------------------------------
             # Check that all the lists are equally long
-            phase_shift = 0
-            if phase_shift_list:
-                if (len(defocus_u_list) + len_phase_shift_list) % 2 != 0:
-                    raise Exception(
-                        f"phase_shift_list length [{len_phase_shift_list}] must be equal to "
-                        f"defocus_u_list [{len(defocus_u_list)}] lengths."
-                    )
-
-                # PhaseShift is set equal to the middle estimation of the list
-                middlePoint = math.trunc(len(phase_shift_list) / 2)
-
-                # If the size of the phase shift list is even, mean the 2 centre values
-                if len(phase_shift_list) % 2 == 0:
-                    phase_shift = (
-                        phase_shift_list[middlePoint]
-                        + phase_shift_list[middlePoint - 1]
-                    ) / 2
-                else:
-                    # If the size of phase shift list estimation is odd, get the centre value
-                    phase_shift = phase_shift_list[middlePoint]
+            # phase_shift = 0
+            # if phase_shift_list:
+            #     if (len(defocus_u_list) + len_phase_shift_list) % 2 != 0:
+            #         raise Exception(
+            #             f"phase_shift_list length [{len_phase_shift_list}] must be equal to "
+            #             f"defocus_u_list [{len(defocus_u_list)}] lengths."
+            #         )
+            #
+            #     # PhaseShift is set equal to the middle estimation of the list
+            #     middlePoint = math.trunc(len(phase_shift_list) / 2)
+            #
+            #     # If the size of the phase shift list is even, mean the 2 centre values
+            #     if len(phase_shift_list) % 2 == 0:
+            #         phase_shift = (
+            #             phase_shift_list[middlePoint]
+            #             + phase_shift_list[middlePoint - 1]
+            #         ) / 2
+            #     else:
+            #         # If the size of phase shift list estimation is odd, get the centre value
+            #         phase_shift = phase_shift_list[middlePoint]
 
             defocus_u, defocus_v, defocus_angle = standarize_defocus(
                 defocus_u, defocus_v, defocus_angle
@@ -201,7 +201,7 @@ class ImodCtfSeries:
                     defocus_u=defocus_u,
                     defocus_v=defocus_v,
                     defocus_angle=defocus_angle,
-                    phase_shift=phase_shift,
+                    # phase_shift=phase_shift,
                 )
             )
         # Write the output yaml file if requested
