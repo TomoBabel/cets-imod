@@ -1,11 +1,13 @@
 import traceback
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Tuple
 import numpy as np
 import yaml
 from cets_data_model.models.models import (
     Affine,
+    Alignment,
     CTFMetadata,
+    ProjectionAlignment,
     TiltSeries,
     TiltImage,
     CoordinateTransformation,
@@ -65,8 +67,18 @@ class ImodTiltSeries:
         odd_stack_file_name: str | Path | None = None,
         ctf_corrected: bool = False,
         out_yaml_file: str | Path | None = None,
-    ) -> TiltSeries:
+    ) -> Tuple[TiltSeries, Alignment]:
         """Converts an IMOD tilt-series into CETS metadata.
+
+        In the current data model the per-projection alignment is NOT stored inside each
+        tilt-image's ``coordinate_transformations``. Instead it is represented with the
+        dedicated ``ProjectionAlignment`` structure (one per tilt-image, holding the
+        ``[Translation, Affine]`` pair in its ``sequence``), and all of them are aggregated
+        into a single ``Alignment`` for the tilt-series. ``Alignment`` objects live under
+        ``Region.alignments``; since this converter emits a bare ``TiltSeries`` (not a
+        ``Region``), the ``Alignment`` is returned alongside it for higher-level assembly.
+        The i-th ``ProjectionAlignment`` corresponds to the i-th ``TiltSeries.images`` entry
+        (positional binding, matching the schema's ordered-list convention).
 
         :param xf_file: xf alignment file. If not provided, the Identity matrix
         will be used as alignment data.
@@ -105,6 +117,7 @@ class ImodTiltSeries:
         axis_z = Axis(name="Z", axis_unit="angstrom", axis_type=AxisType.space)
         coordinate_systems = CoordinateSystem(name="IMOD", axes=[axis_z])
         ti_list = []
+        projection_alignments = []
         for index in range(self.n_imgs):
             output_translation_transform = in_translation_vector_pile[:, index]
             output_rotation_matrix = in_rotation_matrix_pile[:, :, index]
@@ -118,16 +131,18 @@ class ImodTiltSeries:
                 width=width,
                 height=height,
                 coordinate_systems=[coordinate_systems],
-                coordinate_transformations=[
-                    self._gen_translation_transform(
-                        output_translation_transform, pixel_size
-                    ),
-                    self._gen_affine_transform(output_rotation_matrix),
-                ],
+                # Alignment is no longer stored here; it now lives in the ProjectionAlignment
+                # aggregated in the Alignment returned with this tilt-series.
             )
             ti_list.append(ti)
+            # One ProjectionAlignment per projection (index-aligned with ti_list / images).
+            projection_alignments.append(
+                self._gen_projection_alignment(
+                    output_translation_transform, output_rotation_matrix, pixel_size
+                )
+            )
         ts = TiltSeries(
-            id="TO BE DEFINED",  # TODO: define this
+            id=ts_id,  # TODO: define this
             movie_stack_series_id=ts_id,  # TODO: define this
             path=ts_filename,
             even_path=even_stack_file_name,
@@ -135,14 +150,20 @@ class ImodTiltSeries:
             ctf_corrected=ctf_corrected,
             images=ti_list,
         )
-        # Write the output yaml file if requested
+        # The tilt-series alignment (one ProjectionAlignment per tilt-image). It is meant to be
+        # placed under Region.alignments together with this tilt-series.
+        alignment = Alignment(projection_alignments=projection_alignments)
+        # Write the output yaml files if requested (tilt-series + its alignment)
         self._write_ts_yaml(ts, out_yaml_file)
-        return ts
+        if out_yaml_file is not None:
+            self._write_ts_yaml(alignment, self._alignment_yaml_path(out_yaml_file))
+        return ts, alignment
 
     @staticmethod
     def cets_to_imod(
         cets_ts: TiltSeries | Path | str,
         tlt_file: str | Path,
+        alignment: Optional[Alignment] = None,
         add_dose_to_tlt: bool = True,
         xf_file: str | Path | None = None,
     ):
@@ -153,6 +174,11 @@ class ImodTiltSeries:
 
         :param tlt_file: output tlt file to be generated.
         :type tlt_file: pathlib.Path or str
+
+        :param alignment: CETS Alignment holding one ProjectionAlignment per tilt-image
+        (index-aligned with ``cets_ts.images``). Required to write the xf file, since the
+        alignment is no longer stored inside the tilt-image ``coordinate_transformations``.
+        :type alignment: Alignment, optional, Defaults to None
 
         :param add_dose_to_tlt: used to indicate if the generated tlt file should also
         contain a second column with the dose.
@@ -166,8 +192,39 @@ class ImodTiltSeries:
         # Write the tlt file
         write_tlt(cets_ts, tlt_file, add_dose_to_tlt=add_dose_to_tlt)
         if xf_file is not None:
-            # Write the xf file
-            write_xf(cets_ts, xf_file)
+            if alignment is None:
+                print(
+                    "cets_to_imod -> an xf_file was requested but no alignment was "
+                    "provided. Skipping the xf file."
+                )
+            else:
+                # Write the xf file from the ProjectionAlignment structure
+                write_xf(alignment, xf_file)
+
+    def _gen_projection_alignment(
+        self,
+        translation_matrix: np.ndarray,
+        rotation_matrix: np.ndarray,
+        pix_size: float = 1.0,
+    ) -> ProjectionAlignment:
+        """Builds the per-projection alignment as a ProjectionAlignment whose ``sequence``
+        holds the translation and the affine rotation (order preserved from the previous
+        coordinate_transformations layout: translation first, affine second)."""
+        return ProjectionAlignment(
+            sequence=[
+                self._gen_translation_transform(translation_matrix, pix_size),
+                self._gen_affine_transform(rotation_matrix),
+            ],
+            name="IMOD projection alignment from a .xf file.",
+            input="Tilt-image",
+            output="Aligned tilt-image",
+        )
+
+    @staticmethod
+    def _alignment_yaml_path(ts_yaml_file: str | Path) -> Path:
+        """Derives the sibling yaml path for the alignment from the tilt-series yaml path."""
+        p = Path(ts_yaml_file)
+        return p.with_name(f"{p.stem}_alignment{p.suffix}")
 
     def _gen_affine_transform(
         self,

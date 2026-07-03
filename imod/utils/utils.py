@@ -7,7 +7,7 @@ from typing import Tuple, get_args, get_origin, Union, get_type_hints, List, Dic
 import mrcfile
 import numpy as np
 
-from cets_data_model.models.models import CTFMetadata, TiltSeries
+from cets_data_model.models.models import Alignment, CTFMetadata, TiltSeries
 from imod.contants import MRC_MRCS_EXT
 
 
@@ -210,18 +210,20 @@ def write_tlt(
         print(traceback.format_exc())
 
 
-def write_xf(cets_ts_md: TiltSeries, xf_file: Path | str | None) -> None:
+def write_xf(cets_alignment: Alignment, xf_file: Path | str | None) -> None:
     if xf_file is None:
         print("write_xf -> xf_file is None. Skipping...")
         return
     try:
         xf_file = validate_new_file(xf_file)
-        # Read the required data
+        # Read the required data from the ProjectionAlignment structure. Each
+        # ProjectionAlignment.sequence keeps the same order used when writing:
+        # [Translation, Affine].
         # pixel_size = cets_ts_md.images[0].pixel_size
         transform_list = []
-        for ti in cets_ts_md.images:
-            translation = ti.coordinate_transformations[0].translation
-            rotation = ti.coordinate_transformations[1].affine
+        for projection_alignment in cets_alignment.projection_alignments:
+            translation = projection_alignment.sequence[0].translation
+            rotation = projection_alignment.sequence[1].affine
             rot_matrix_elements = np.array(rotation).flatten()
             # The shifts are stored in angstroms in CETS, but in pixels in IMOD
             sx = translation[0]  # / pixel_size

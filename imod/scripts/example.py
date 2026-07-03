@@ -23,7 +23,7 @@ cets_ctf_md_list = ics.imod_to_cets(out_yaml_file=yaml_file_ctf)
 its = ImodTiltSeries(
     ts_file_name=ts_fn, tilt_angles=tlt_fn, ctf_md_list=cets_ctf_md_list
 )
-cets_ts_md = its.imod_to_cets(xf_file=xf_fn, out_yaml_file=yaml_file_ts)
+cets_ts_md, cets_alignment = its.imod_to_cets(xf_file=xf_fn, out_yaml_file=yaml_file_ts)
 # Tomogram metadata
 it = ImodTomogram(tomo_file=tomo_fn)
 cets_tomo_md = it.imod_to_cets(out_yaml_file=yaml_file_tomo)
@@ -41,5 +41,9 @@ tilt_angles, doses, orders = parse_tlt_file(tlt_fn)
 ics.cets_to_imod(yaml_file_ctf, tilt_angles, out_defocus)
 # Write the tlt and xf
 its.cets_to_imod(
-    cets_ts=cets_ts_md, tlt_file=out_tlt, add_dose_to_tlt=True, xf_file=out_xf
+    cets_ts=cets_ts_md,
+    tlt_file=out_tlt,
+    alignment=cets_alignment,
+    add_dose_to_tlt=True,
+    xf_file=out_xf,
 )
