@@ -121,7 +121,10 @@ class ImodTiltSeries:
         for index in range(self.n_imgs):
             output_translation_transform = in_translation_vector_pile[:, index]
             output_rotation_matrix = in_rotation_matrix_pile[:, :, index]
+            # Unique tilt-image id within the tilt-series (derived from the ts id + section).
+            tilt_image_id = f"{ts_id}_{index}"
             ti = TiltImage(
+                id=tilt_image_id,
                 movie_stack_id=ts_id,  # TODO: define this
                 path=ts_filename,
                 section=index,
@@ -135,10 +138,15 @@ class ImodTiltSeries:
                 # aggregated in the Alignment returned with this tilt-series.
             )
             ti_list.append(ti)
-            # One ProjectionAlignment per projection (index-aligned with ti_list / images).
+            # One ProjectionAlignment per projection, linked to its tilt-image by tilt_image_id
+            # (index-aligned with ti_list / images).
             projection_alignments.append(
                 self._gen_projection_alignment(
-                    output_translation_transform, output_rotation_matrix, pixel_size
+                    output_translation_transform,
+                    output_rotation_matrix,
+                    pixel_size,
+                    projection_alignment_id=f"{ts_id}_align_{index}",
+                    tilt_image_id=tilt_image_id,
                 )
             )
         ts = TiltSeries(
@@ -151,8 +159,11 @@ class ImodTiltSeries:
             images=ti_list,
         )
         # The tilt-series alignment (one ProjectionAlignment per tilt-image). It is meant to be
-        # placed under Region.alignments together with this tilt-series.
-        alignment = Alignment(projection_alignments=projection_alignments)
+        # placed under Region.alignments together with this tilt-series, and links the whole set
+        # back to the tilt-series via tilt_series_id.
+        alignment = Alignment(
+            tilt_series_id=ts_id, projection_alignments=projection_alignments
+        )
         # Write the output yaml files if requested (tilt-series + its alignment)
         self._write_ts_yaml(ts, out_yaml_file)
         if out_yaml_file is not None:
@@ -206,11 +217,19 @@ class ImodTiltSeries:
         translation_matrix: np.ndarray,
         rotation_matrix: np.ndarray,
         pix_size: float = 1.0,
+        projection_alignment_id: str = "",
+        tilt_image_id: str | None = None,
     ) -> ProjectionAlignment:
         """Builds the per-projection alignment as a ProjectionAlignment whose ``sequence``
         holds the translation and the affine rotation (order preserved from the previous
-        coordinate_transformations layout: translation first, affine second)."""
+        coordinate_transformations layout: translation first, affine second).
+
+        :param projection_alignment_id: unique id for this ProjectionAlignment.
+        :param tilt_image_id: id of the TiltImage this alignment applies to.
+        """
         return ProjectionAlignment(
+            id=projection_alignment_id,
+            tilt_image_id=tilt_image_id,
             sequence=[
                 self._gen_translation_transform(translation_matrix, pix_size),
                 self._gen_affine_transform(rotation_matrix),
