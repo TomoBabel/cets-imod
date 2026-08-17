@@ -42,7 +42,20 @@ class ImodTiltSeries:
         ts_file_name: str | Path,
         tilt_angles: str | Path | List[float],
         ctf_md_list: Optional[List[CTFMetadata]] = None,
+        voltage: Optional[float] = None,
+        spherical_aberration: Optional[float] = None,
+        amplitude_contrast: Optional[float] = None,
+        dose_rate: Optional[float] = None,
     ) -> None:
+        """:param voltage: acceleration voltage in kV.
+        :param spherical_aberration: spherical aberration (Cs) in mm.
+        :param amplitude_contrast: amplitude contrast fraction (dimensionless).
+        :param dose_rate: dose rate during acquisition in e-/A^2/s.
+
+        The four acquisition constants above are session/microscope values that are
+        not present in the IMOD tilt-series files (.tlt/.xf) parsed here, so they are
+        accepted as optional inputs and, when provided, attached to every tilt-image.
+        """
         self.ts_file_name = validate_file(ts_file_name, "ts_file_name", MRC_MRCS_EXT)
         if type(tilt_angles) is List[float]:
             tilt_angles = validate_tilt_angle_list(self.ts_file_name, tilt_angles)
@@ -59,6 +72,12 @@ class ImodTiltSeries:
         self.dose_list = dose_list
         self.acq_orders = acq_orders
         self.n_imgs = n_imgs
+        # Acquisition constants (constant across the tilt-series). Not available from
+        # the .tlt/.xf files, so supplied by the caller; default to None otherwise.
+        self.voltage = voltage
+        self.spherical_aberration = spherical_aberration
+        self.amplitude_contrast = amplitude_contrast
+        self.dose_rate = dose_rate
 
     def imod_to_cets(
         self,
@@ -131,6 +150,11 @@ class ImodTiltSeries:
                 nominal_tilt_angle=self.tilt_angles[index],
                 accumulated_dose=self.dose_list[index] if self.dose_list else None,
                 ctf_metadata=self.ctf_md_list[index] if self.ctf_md_list else None,
+                # Acquisition constants (same for every tilt-image in the series).
+                voltage=self.voltage,
+                spherical_aberration=self.spherical_aberration,
+                amplitude_contrast=self.amplitude_contrast,
+                dose_rate=self.dose_rate,
                 width=width,
                 height=height,
                 coordinate_systems=[coordinate_systems],
