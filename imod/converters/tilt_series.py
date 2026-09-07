@@ -19,8 +19,6 @@ from cets_data_model.models.models import (
     Translation,
     Vector3D,
     Matrix3x3,
-    Instrument,
-    AcquisitionSession,
 )
 from cets_data_model.utils.image_utils import get_mrc_info
 from imod.contants import MRC_MRCS_EXT
@@ -56,9 +54,8 @@ class ImodTiltSeries:
 
         The four acquisition constants above are session/microscope values that are
         not present in the IMOD tilt-series files (.tlt/.xf) parsed here, so they are
-        accepted as optional inputs. ``imod_to_cets`` emits them as an ``Instrument``
-        (voltage, spherical aberration) and an ``AcquisitionSession`` (amplitude contrast,
-        dose rate) rather than storing them on the tilt-images.
+        accepted as optional inputs. ``imod_to_cets`` stores them flat on the
+        ``TiltSeries`` (they are constant across the series).
         """
         self.ts_file_name = validate_file(ts_file_name, "ts_file_name", MRC_MRCS_EXT)
         if type(tilt_angles) is List[float]:
@@ -90,7 +87,7 @@ class ImodTiltSeries:
         odd_stack_file_name: str | Path | None = None,
         ctf_corrected: bool = False,
         out_yaml_file: str | Path | None = None,
-    ) -> Tuple[TiltSeries, Alignment, Instrument, AcquisitionSession]:
+    ) -> Tuple[TiltSeries, Alignment]:
         """Converts an IMOD tilt-series into CETS metadata.
 
         In the current data model the per-projection alignment is NOT stored inside each
@@ -103,12 +100,9 @@ class ImodTiltSeries:
         The i-th ``ProjectionAlignment`` corresponds to the i-th ``TiltSeries.images`` entry
         (positional binding, matching the schema's ordered-list convention).
 
-        Microscope/session acquisition metadata is no longer stored on the tilt-images: the
-        constructor-supplied constants are emitted as an ``Instrument`` (voltage, spherical
-        aberration) and an ``AcquisitionSession`` (amplitude contrast, dose rate; linked to the
-        instrument via ``instrument_id``). The tilt-series references the session via
-        ``acquisition_session_id``. Both are returned as the 3rd and 4th elements for
-        higher-level assembly onto ``Dataset.instruments`` / ``Dataset.acquisition_sessions``.
+        Microscope/session acquisition scalars (``voltage``, ``spherical_aberration``,
+        ``amplitude_contrast``, ``dose_rate``) are the constructor-supplied constants and are
+        stored **flat on the ``TiltSeries``** (they are constant across the series).
 
         :param xf_file: xf alignment file. If not provided, the Identity matrix
         will be used as alignment data.
@@ -144,21 +138,6 @@ class ImodTiltSeries:
         ts_filename = str(self.ts_file_name)
         ts_id = self.ts_file_name.stem
         pixel_size = img_info.apix_x
-        # Dataset-level acquisition metadata (constant across the tilt-series): the
-        # microscope hardware (Instrument) and the session parameters (AcquisitionSession),
-        # linked to the instrument via instrument_id. IDs are derived from the tilt-series id
-        # to stay unique when several tilt-series are assembled into a single Dataset.
-        instrument = Instrument(
-            id=f"{ts_id}_instrument",
-            voltage=self.voltage,
-            spherical_aberration=self.spherical_aberration,
-        )
-        acquisition_session = AcquisitionSession(
-            id=f"{ts_id}_session",
-            instrument_id=instrument.id,
-            amplitude_contrast=self.amplitude_contrast,
-            dose_rate=self.dose_rate,
-        )
         axis_z = Axis(name="Z", axis_unit="angstrom", axis_type=AxisType.space)
         coordinate_systems = CoordinateSystem(name="IMOD", axes=[axis_z])
         ti_list = []
@@ -176,8 +155,7 @@ class ImodTiltSeries:
                 nominal_tilt_angle=self.tilt_angles[index],
                 accumulated_dose=self.dose_list[index] if self.dose_list else None,
                 ctf_metadata=self.ctf_md_list[index] if self.ctf_md_list else None,
-                # Acquisition constants no longer live on the tilt-image; they are emitted
-                # as the Instrument / AcquisitionSession built above.
+                # Acquisition scalars are stored flat on the TiltSeries, not the tilt-image.
                 width=width,
                 height=height,
                 coordinate_systems=[coordinate_systems],
@@ -204,8 +182,11 @@ class ImodTiltSeries:
             odd_path=odd_stack_file_name,
             ctf_corrected=ctf_corrected,
             images=ti_list,
-            # Link the tilt-series to its acquisition session.
-            acquisition_session_id=acquisition_session.id,
+            # Microscope/session acquisition scalars, stored flat on the tilt-series.
+            voltage=self.voltage,
+            spherical_aberration=self.spherical_aberration,
+            amplitude_contrast=self.amplitude_contrast,
+            dose_rate=self.dose_rate,
         )
         # The tilt-series alignment (one ProjectionAlignment per tilt-image). It is meant to be
         # placed under Region.alignments together with this tilt-series, and links the whole set
@@ -213,15 +194,11 @@ class ImodTiltSeries:
         alignment = Alignment(
             tilt_series_id=ts_id, projection_alignments=projection_alignments
         )
-        # Write the output yaml files if requested (tilt-series + alignment + instrument + session)
+        # Write the output yaml files if requested (tilt-series + its alignment)
         self._write_ts_yaml(ts, out_yaml_file)
         if out_yaml_file is not None:
             self._write_ts_yaml(alignment, self._alignment_yaml_path(out_yaml_file))
-            self._write_ts_yaml(instrument, self._instrument_yaml_path(out_yaml_file))
-            self._write_ts_yaml(
-                acquisition_session, self._session_yaml_path(out_yaml_file)
-            )
-        return ts, alignment, instrument, acquisition_session
+        return ts, alignment
 
     @staticmethod
     def cets_to_imod(
@@ -298,19 +275,6 @@ class ImodTiltSeries:
         p = Path(ts_yaml_file)
         return p.with_name(f"{p.stem}_alignment{p.suffix}")
 
-    @staticmethod
-    def _instrument_yaml_path(ts_yaml_file: str | Path) -> Path:
-        """Derives the sibling yaml path for the instrument from the tilt-series yaml path."""
-        p = Path(ts_yaml_file)
-        return p.with_name(f"{p.stem}_instrument{p.suffix}")
-
-    @staticmethod
-    def _session_yaml_path(ts_yaml_file: str | Path) -> Path:
-        """Derives the sibling yaml path for the acquisition session from the tilt-series
-        yaml path."""
-        p = Path(ts_yaml_file)
-        return p.with_name(f"{p.stem}_acquisition_session{p.suffix}")
-
     def _gen_affine_transform(
         self,
         rotation_matrix: np.ndarray,
@@ -353,7 +317,7 @@ class ImodTiltSeries:
 
     @staticmethod
     def _write_ts_yaml(
-        cets_ts_md: TiltSeries | Alignment | Instrument | AcquisitionSession,
+        cets_ts_md: TiltSeries | Alignment,
         yaml_file: Path | str | None,
     ) -> None:
         if yaml_file is None:
