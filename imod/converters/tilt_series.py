@@ -46,16 +46,20 @@ class ImodTiltSeries:
         spherical_aberration: Optional[float] = None,
         amplitude_contrast: Optional[float] = None,
         dose_rate: Optional[float] = None,
+        exposure_time: Optional[float] = None,
     ) -> None:
         """:param voltage: acceleration voltage in kV.
         :param spherical_aberration: spherical aberration (Cs) in mm.
         :param amplitude_contrast: amplitude contrast fraction (dimensionless).
         :param dose_rate: dose rate during acquisition in e-/A^2/s.
+        :param exposure_time: total exposure time per record in seconds (applied to every
+            tilt-image).
 
-        The four acquisition constants above are session/microscope values that are
-        not present in the IMOD tilt-series files (.tlt/.xf) parsed here, so they are
-        accepted as optional inputs. ``imod_to_cets`` stores them flat on the
-        ``TiltSeries`` (they are constant across the series).
+        These acquisition constants are session/microscope values that are not present in
+        the IMOD tilt-series files (.tlt/.xf) parsed here, so they are accepted as optional
+        inputs. ``imod_to_cets`` stores ``voltage`` / ``spherical_aberration`` /
+        ``amplitude_contrast`` / ``dose_rate`` flat on the ``TiltSeries`` (constant across the
+        series), while ``exposure_time`` is a per-exposure quantity stored on each tilt-image.
         """
         self.ts_file_name = validate_file(ts_file_name, "ts_file_name", MRC_MRCS_EXT)
         if type(tilt_angles) is List[float]:
@@ -79,6 +83,7 @@ class ImodTiltSeries:
         self.spherical_aberration = spherical_aberration
         self.amplitude_contrast = amplitude_contrast
         self.dose_rate = dose_rate
+        self.exposure_time = exposure_time
 
     def imod_to_cets(
         self,
@@ -103,6 +108,7 @@ class ImodTiltSeries:
         Microscope/session acquisition scalars (``voltage``, ``spherical_aberration``,
         ``amplitude_contrast``, ``dose_rate``) are the constructor-supplied constants and are
         stored **flat on the ``TiltSeries``** (they are constant across the series).
+        ``exposure_time`` is a per-exposure quantity and is stored on each ``TiltImage``.
 
         :param xf_file: xf alignment file. If not provided, the Identity matrix
         will be used as alignment data.
@@ -155,7 +161,10 @@ class ImodTiltSeries:
                 nominal_tilt_angle=self.tilt_angles[index],
                 accumulated_dose=self.dose_list[index] if self.dose_list else None,
                 ctf_metadata=self.ctf_md_list[index] if self.ctf_md_list else None,
-                # Acquisition scalars are stored flat on the TiltSeries, not the tilt-image.
+                # Exposure time is a per-exposure quantity (can vary per tilt); the supplied
+                # scalar is applied to every tilt-image. The other acquisition scalars are
+                # constant across the series and stored flat on the TiltSeries.
+                exposure_time=self.exposure_time,
                 width=width,
                 height=height,
                 coordinate_systems=[coordinate_systems],
