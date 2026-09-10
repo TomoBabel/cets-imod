@@ -57,7 +57,7 @@ class ImodTiltSeries:
         The four acquisition constants above are session/microscope values that are
         not present in the IMOD tilt-series files (.tlt/.xf) parsed here, so they are
         accepted as optional inputs. ``imod_to_cets`` emits them as an ``Instrument``
-        (voltage, spherical aberration) and an ``AcquisitionSession`` (amplitude contrast,
+        (voltage) and an ``AcquisitionSession`` (spherical aberration, amplitude contrast,
         dose rate) rather than storing them on the tilt-images.
         """
         self.ts_file_name = validate_file(ts_file_name, "ts_file_name", MRC_MRCS_EXT)
@@ -104,9 +104,9 @@ class ImodTiltSeries:
         (positional binding, matching the schema's ordered-list convention).
 
         Microscope/session acquisition metadata is no longer stored on the tilt-images: the
-        constructor-supplied constants are emitted as an ``Instrument`` (voltage, spherical
-        aberration) and an ``AcquisitionSession`` (amplitude contrast, dose rate; linked to the
-        instrument via ``instrument_id``). The tilt-series references the session via
+        constructor-supplied constants are emitted as an ``Instrument`` (voltage) and an
+        ``AcquisitionSession`` (spherical aberration, amplitude contrast, dose rate; linked to
+        the instrument via ``instrument_id``). The tilt-series references the session via
         ``acquisition_session_id``. Both are returned as the 3rd and 4th elements for
         higher-level assembly onto ``Dataset.instruments`` / ``Dataset.acquisition_sessions``.
 
@@ -151,13 +151,13 @@ class ImodTiltSeries:
         instrument = Instrument(
             id=f"{ts_id}_instrument",
             voltage=self.voltage,
-            spherical_aberration=self.spherical_aberration,
         )
         acquisition_session = AcquisitionSession(
             id=f"{ts_id}_session",
             instrument_id=instrument.id,
             amplitude_contrast=self.amplitude_contrast,
             dose_rate=self.dose_rate,
+            spherical_aberration=self.spherical_aberration,
         )
         axis_z = Axis(name="Z", axis_unit="angstrom", axis_type=AxisType.space)
         coordinate_systems = CoordinateSystem(name="IMOD", axes=[axis_z])
