@@ -7,8 +7,53 @@ from typing import Tuple, get_args, get_origin, Union, get_type_hints, List, Dic
 import mrcfile
 import numpy as np
 
-from cets_data_model.models.models import Alignment, CTFMetadata, TiltSeries
+from cets_data_model.models.models import (
+    Alignment,
+    CTFMetadata,
+    TiltSeries,
+    CoordinateSystem,
+    Axis,
+    AxisType,
+    Scale,
+)
 from imod.contants import MRC_MRCS_EXT
+
+
+def gen_coordinate_systems(
+    name: str, ndim: int = 2
+) -> Tuple[CoordinateSystem, CoordinateSystem]:
+    """Builds the (array, physical) coordinate-system pair for an ``ndim`` image/frame.
+
+    Names follow the CETS proposal convention ``{name}_array`` / ``{name}_physical``. The array
+    system is pixel/array coords (unitless); the physical system is in Å. ``ndim`` is 2 for 2-D
+    images (x, y) and 3 for volumes (x, y, z).
+    """
+    axes = ("x", "y", "z")[:ndim]
+    array_cs = CoordinateSystem(
+        name=f"{name}_array",
+        axes=[Axis(name=a, axis_type=AxisType.array, axis_unit=None) for a in axes],
+    )
+    physical_cs = CoordinateSystem(
+        name=f"{name}_physical",
+        axes=[
+            Axis(name=a, axis_type=AxisType.space, axis_unit="angstrom") for a in axes
+        ],
+    )
+    return array_cs, physical_cs
+
+
+def gen_array_to_physical(
+    pixel_size: float, array_cs_name: str, physical_cs_name: str, ndim: int = 2
+) -> Scale:
+    """The single canonical ``array_to_physical`` transformation for an image: a Scale mapping
+    pixel/array coordinates to physical (Å) coordinates by the (isotropic) pixel/voxel size.
+    The spec requires exactly one such transformation per image."""
+    return Scale(
+        scale=[pixel_size] * ndim,
+        name="array_to_physical",
+        input=array_cs_name,
+        output=physical_cs_name,
+    )
 
 
 def validate_file(
@@ -216,14 +261,22 @@ def write_xf(cets_alignment: Alignment, xf_file: Path | str | None) -> None:
         return
     try:
         xf_file = validate_new_file(xf_file)
-        # Read the required data from the ProjectionAlignment structure. Each
-        # ProjectionAlignment.sequence keeps the same order used when writing:
-        # [Translation, Affine].
+        # Read the required data from each ProjectionAlignment.sequence, which holds an
+        # Affine (rotation) and a Translation (shift). Look each up by attribute so this is
+        # independent of their order in the sequence.
         # pixel_size = cets_ts_md.images[0].pixel_size
         transform_list = []
         for projection_alignment in cets_alignment.projection_alignments:
-            translation = projection_alignment.sequence[0].translation
-            rotation = projection_alignment.sequence[1].affine
+            translation = next(
+                t.translation
+                for t in projection_alignment.sequence
+                if getattr(t, "translation", None) is not None
+            )
+            rotation = next(
+                t.affine
+                for t in projection_alignment.sequence
+                if getattr(t, "affine", None) is not None
+            )
             rot_matrix_elements = np.array(rotation).flatten()
             # The shifts are stored in angstroms in CETS, but in pixels in IMOD
             sx = translation[0]  # / pixel_size

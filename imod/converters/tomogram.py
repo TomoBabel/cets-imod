@@ -5,7 +5,13 @@ import yaml
 
 from cets_data_model.models.models import Tomogram
 from cets_data_model.utils.image_utils import get_mrc_info
-from imod.utils.utils import validate_even_odd_files, validate_new_file, validate_file
+from imod.utils.utils import (
+    validate_even_odd_files,
+    validate_new_file,
+    validate_file,
+    gen_coordinate_systems,
+    gen_array_to_physical,
+)
 
 
 class ImodTomogram:
@@ -42,14 +48,23 @@ class ImodTomogram:
         # Read image info
         tomo_filename = str(self.file_name)
         image_info_obj = get_mrc_info(tomo_filename)
+        tomo_id = self.file_name.stem
+        # Every image (volume) gets an array (voxel, unitless) and a physical (Å) coordinate
+        # system plus exactly one canonical array_to_physical scale (the voxel size), per spec.
+        voxel_size = image_info_obj.apix_x if image_info_obj.apix_x else 1.0
+        array_cs, physical_cs = gen_coordinate_systems(tomo_id, ndim=3)
+        array_to_physical = gen_array_to_physical(
+            voxel_size, array_cs.name, physical_cs.name, ndim=3
+        )
         tomo = Tomogram(
-            id="TO BE DEFINED",  # TODO: to be defined
+            id=tomo_id,
             path=tomo_filename,
-            tilt_series_id=self.file_name.stem,
+            tilt_series_id=tomo_id,
             width=image_info_obj.size_x,
             height=image_info_obj.size_y,
             depth=image_info_obj.size_z,
-            # voxel_size=image_info_obj.apix_x,
+            coordinate_systems=[array_cs, physical_cs],
+            coordinate_transformations=[array_to_physical],
             ctf_corrected=ctf_corrected,
             even_path=str(even_file_name),
             odd_path=str(odd_file_name),

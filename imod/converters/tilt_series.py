@@ -10,12 +10,6 @@ from cets_data_model.models.models import (
     ProjectionAlignment,
     TiltSeries,
     TiltImage,
-    CoordinateTransformation,
-    CoordinateSystem,
-    Axis,
-    # SpaceAxis,
-    # AxisUnit,
-    AxisType,
     Translation,
     Vector3D,
     Matrix3x3,
@@ -35,6 +29,8 @@ from imod.utils.utils import (
     write_xf,
     validate_new_file,
     load_md_list_yaml,
+    gen_coordinate_systems,
+    gen_array_to_physical,
 )
 
 
@@ -143,7 +139,9 @@ class ImodTiltSeries:
 
         ts_filename = str(self.ts_file_name)
         ts_id = self.ts_file_name.stem
-        pixel_size = img_info.apix_x
+        # Merged (tilt-series) pixel size in Å; backs the array_to_physical scale and the
+        # conversion of alignment shifts to Å.
+        pixel_size = img_info.apix_x if img_info.apix_x else 1.0
         # Dataset-level acquisition metadata (constant across the tilt-series): the
         # microscope hardware (Instrument) and the session parameters (AcquisitionSession),
         # linked to the instrument via instrument_id. IDs are derived from the tilt-series id
@@ -159,8 +157,6 @@ class ImodTiltSeries:
             dose_rate=self.dose_rate,
             spherical_aberration=self.spherical_aberration,
         )
-        axis_z = Axis(name="Z", axis_unit="angstrom", axis_type=AxisType.space)
-        coordinate_systems = CoordinateSystem(name="IMOD", axes=[axis_z])
         ti_list = []
         projection_alignments = []
         for index in range(self.n_imgs):
@@ -168,6 +164,13 @@ class ImodTiltSeries:
             output_rotation_matrix = in_rotation_matrix_pile[:, :, index]
             # Unique tilt-image id within the tilt-series (derived from the ts id + section).
             tilt_image_id = f"{ts_id}_{index}"
+            # Every image gets an array (pixel, unitless) and a physical (Å) coordinate system
+            # plus exactly one canonical array_to_physical scale transformation (spec).
+            image_cs_name = f"tilt_image_{index:03d}"
+            array_cs, physical_cs = gen_coordinate_systems(image_cs_name, ndim=2)
+            array_to_physical = gen_array_to_physical(
+                pixel_size, array_cs.name, physical_cs.name, ndim=2
+            )
             ti = TiltImage(
                 id=tilt_image_id,
                 movie_stack_id=ts_id,  # TODO: define this
@@ -180,13 +183,12 @@ class ImodTiltSeries:
                 # as the Instrument / AcquisitionSession built above.
                 width=width,
                 height=height,
-                coordinate_systems=[coordinate_systems],
-                # Alignment is no longer stored here; it now lives in the ProjectionAlignment
-                # aggregated in the Alignment returned with this tilt-series.
+                coordinate_systems=[array_cs, physical_cs],
+                coordinate_transformations=[array_to_physical],
             )
             ti_list.append(ti)
-            # One ProjectionAlignment per projection, linked to its tilt-image by tilt_image_id
-            # (index-aligned with ti_list / images).
+            # One ProjectionAlignment per projection: maps this projection's physical frame to
+            # the tilt-series' shared aligned physical frame (index-aligned with ti_list).
             projection_alignments.append(
                 self._gen_projection_alignment(
                     output_translation_transform,
@@ -194,6 +196,9 @@ class ImodTiltSeries:
                     pixel_size,
                     projection_alignment_id=f"{ts_id}_align_{index}",
                     tilt_image_id=tilt_image_id,
+                    input_cs=physical_cs.name,
+                    output_cs=f"tilt_series_{ts_id}_physical",
+                    section=index,
                 )
             )
         ts = TiltSeries(
@@ -272,24 +277,31 @@ class ImodTiltSeries:
         pix_size: float = 1.0,
         projection_alignment_id: str = "",
         tilt_image_id: str | None = None,
+        input_cs: str | None = None,
+        output_cs: str | None = None,
+        section: int = 0,
     ) -> ProjectionAlignment:
         """Builds the per-projection alignment as a ProjectionAlignment whose ``sequence``
-        holds the translation and the affine rotation (order preserved from the previous
-        coordinate_transformations layout: translation first, affine second).
+        is ``[Affine, Translation]`` (rotation applied first, then shift, shifts in Å),
+        mapping the tilt-image physical frame (``input_cs``) to the tilt-series' shared
+        aligned physical frame (``output_cs``).
 
         :param projection_alignment_id: unique id for this ProjectionAlignment.
         :param tilt_image_id: id of the TiltImage this alignment applies to.
+        :param input_cs: name of the tilt-image physical coordinate system.
+        :param output_cs: name of the shared tilt-series aligned physical coordinate system.
+        :param section: 0-based projection index, used for the alignment name.
         """
         return ProjectionAlignment(
             id=projection_alignment_id,
             tilt_image_id=tilt_image_id,
             sequence=[
-                self._gen_translation_transform(translation_matrix, pix_size),
                 self._gen_affine_transform(rotation_matrix),
+                self._gen_translation_transform(translation_matrix, pix_size),
             ],
-            name="IMOD projection alignment from a .xf file.",
-            input="Tilt-image",
-            output="Aligned tilt-image",
+            name=f"alignment_tilt_{section:03d}",
+            input=input_cs,
+            output=output_cs,
         )
 
     @staticmethod
@@ -314,22 +326,16 @@ class ImodTiltSeries:
     def _gen_affine_transform(
         self,
         rotation_matrix: np.ndarray,
-    ) -> CoordinateTransformation:
-        return Affine(
-            affine=self._get_affine_values(rotation_matrix),
-            name="IMOD rotation from a .xf file.",
-            input="Tilt-image",
-            output="Aligned tilt-image (rotation-corrected)",
-        )
+    ) -> Affine:
+        """Per-projection rotation as a homogeneous 3x3 affine (dimensionless)."""
+        return Affine(affine=self._get_affine_values(rotation_matrix))
 
     def _gen_translation_transform(
         self, translation_matrix: np.ndarray, pix_size: float = 1.0
     ) -> Translation:
+        """Per-projection shift, converted from pixels to Å (physical frame)."""
         return Translation(
-            translation=self._get_translation_values(translation_matrix, pix_size),
-            name="IMOD translation from a .xf file. Shifts in angstroms.",
-            input="Tilt-image",
-            output="Aligned tilt-image (translation-corrected)",
+            translation=self._get_translation_values(translation_matrix, pix_size)
         )
 
     @staticmethod
