@@ -11,12 +11,28 @@ from cets_data_model.models.models import (
     Alignment,
     CTFMetadata,
     TiltSeries,
+    TiltImage,
     CoordinateSystem,
     Axis,
     AxisType,
     Scale,
 )
 from imod.contants import MRC_MRCS_EXT
+
+
+def get_image_pixel_size(image: TiltImage) -> float | None:
+    """Returns the (isotropic) pixel size in Å from an image's canonical ``array_to_physical``
+    Scale transformation (falling back to any Scale), or None if none is present."""
+    transforms = image.coordinate_transformations or []
+    named = [
+        t
+        for t in transforms
+        if getattr(t, "name", None) == "array_to_physical" and getattr(t, "scale", None)
+    ]
+    if named:
+        return named[0].scale[0]
+    any_scale = [t for t in transforms if getattr(t, "scale", None)]
+    return any_scale[0].scale[0] if any_scale else None
 
 
 def gen_coordinate_systems(
@@ -255,18 +271,28 @@ def write_tlt(
         print(traceback.format_exc())
 
 
-def write_xf(cets_alignment: Alignment, xf_file: Path | str | None) -> None:
+def write_xf(
+    cets_alignment: Alignment,
+    xf_file: Path | str | None,
+    pixel_sizes: List[float | None] | None = None,
+) -> None:
+    """Writes an IMOD .xf file from a CETS Alignment, as native IMOD would.
+
+    CETS stores the per-projection alignment shifts in Å (physical frame); native IMOD .xf
+    files store them in pixels, so each shift is divided by the tilt-image pixel size.
+    ``pixel_sizes`` is the per-projection pixel size in Å, index-aligned with
+    ``cets_alignment.projection_alignments``; when it is missing/None the shift is written
+    unchanged. Rows use IMOD's native ``%12.7f%12.7f%12.7f%12.7f%12.3f%12.3f`` layout.
+    """
     if xf_file is None:
         print("write_xf -> xf_file is None. Skipping...")
         return
     try:
         xf_file = validate_new_file(xf_file)
-        # Read the required data from each ProjectionAlignment.sequence, which holds an
-        # Affine (rotation) and a Translation (shift). Look each up by attribute so this is
-        # independent of their order in the sequence.
-        # pixel_size = cets_ts_md.images[0].pixel_size
-        transform_list = []
-        for projection_alignment in cets_alignment.projection_alignments:
+        rows = []
+        for i, projection_alignment in enumerate(cets_alignment.projection_alignments):
+            # The sequence holds an Affine (rotation) and a Translation (shift); look each up
+            # by attribute so this is independent of their order in the sequence.
             translation = next(
                 t.translation
                 for t in projection_alignment.sequence
@@ -277,24 +303,21 @@ def write_xf(cets_alignment: Alignment, xf_file: Path | str | None) -> None:
                 for t in projection_alignment.sequence
                 if getattr(t, "affine", None) is not None
             )
-            rot_matrix_elements = np.array(rotation).flatten()
-            # The shifts are stored in angstroms in CETS, but in pixels in IMOD
-            sx = translation[0]  # / pixel_size
-            sy = translation[1]  # / pixel_size
-            transform_list.append(
-                [
-                    f"{rot_matrix_elements[0]:.7f}",
-                    f"{rot_matrix_elements[1]:.7f}",
-                    f"{rot_matrix_elements[3]:.7f}",
-                    f"{rot_matrix_elements[4]:.7f}",
-                    f"{float(f'{sx:.3g}'):>6}",
-                    f"{float(f'{sy:.3g}'):>6}",
-                ]
+            rot = np.array(rotation).flatten()
+            # Convert the shift from Å (CETS) back to pixels (IMOD) via the image pixel size.
+            pixel_size = (
+                pixel_sizes[i] if pixel_sizes and i < len(pixel_sizes) else None
+            )
+            pixel_size = pixel_size or 1.0
+            sx = translation[0] / pixel_size
+            sy = translation[1] / pixel_size
+            rows.append(
+                f"{rot[0]:12.7f}{rot[1]:12.7f}{rot[3]:12.7f}{rot[4]:12.7f}"
+                f"{sx:12.3f}{sy:12.3f}\n"
             )
         # write the xf_file
         with open(xf_file, "w") as f:
-            for row in transform_list:
-                f.write("\t".join(str(item) for item in row) + "\n")
+            f.writelines(rows)
         print(f"xf file successfully written! -> {xf_file}")
     except Exception as e:
         print(f"Unable to write the output xf file {xf_file} with the exception -> {e}")

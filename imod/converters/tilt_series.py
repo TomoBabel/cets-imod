@@ -31,6 +31,7 @@ from imod.utils.utils import (
     load_md_list_yaml,
     gen_coordinate_systems,
     gen_array_to_physical,
+    get_image_pixel_size,
 )
 
 
@@ -267,8 +268,11 @@ class ImodTiltSeries:
                     "provided. Skipping the xf file."
                 )
             else:
-                # Write the xf file from the ProjectionAlignment structure
-                write_xf(alignment, xf_file)
+                # Per-projection pixel sizes (Å) let write_xf convert the CETS shifts
+                # (stored in Å) back to pixels, as native IMOD .xf files use.
+                images = getattr(cets_ts, "images", None) or []
+                pixel_sizes = [get_image_pixel_size(img) for img in images]
+                write_xf(alignment, xf_file, pixel_sizes=pixel_sizes)
 
     def _gen_projection_alignment(
         self,
