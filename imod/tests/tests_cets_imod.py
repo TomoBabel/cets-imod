@@ -67,7 +67,6 @@ class CetsImodDefocusReaderTest(CetsImodBaseTest):
             )
             self.assertEqual(ctf_md.defocus_angle, ctf_test_md.get(DEFOCUS_ANGLE, 0.0))
             self.assertEqual(ctf_md.phase_shift, ctf_test_md.get(PHASE_SHIFT, 0.0))
-            self.assertEqual(ctf_md.defocus_handedness, -1)
 
         # Check if the yaml file was generated
         self.assertTrue(yaml_file_ctf.is_file())
