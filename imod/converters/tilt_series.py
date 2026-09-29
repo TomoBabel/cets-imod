@@ -179,6 +179,10 @@ class ImodTiltSeries:
                 section=index,
                 nominal_tilt_angle=self.tilt_angles[index],
                 accumulated_dose=self.dose_list[index] if self.dose_list else None,
+                # Temporal collection order (from the .tlt 3rd column, or inferred from
+                # the dose list by parse_tlt_file). Stored explicitly rather than left to
+                # be re-derived from the dose downstream.
+                acquisition_order=self.acq_orders[index] if self.acq_orders else None,
                 ctf_metadata=self.ctf_md_list[index] if self.ctf_md_list else None,
                 # Acquisition constants no longer live on the tilt-image; they are emitted
                 # as the Instrument / AcquisitionSession built above.

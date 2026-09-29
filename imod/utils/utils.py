@@ -244,6 +244,7 @@ def write_tlt(
         tlt_file = validate_new_file(tlt_file)
         tilt_angles: list[float]
         dose_list: list[float] = []
+        order_list: list[int] = []
         # Read the required data
         tilt_angles = [ti.nominal_tilt_angle for ti in cets_ts_md.images]
         if add_dose_to_tlt:
@@ -259,9 +260,21 @@ def write_tlt(
                 )
                 dose_list = []
 
+        # Acquisition order is written as the 3rd tlt column, but only alongside the dose
+        # (2nd column) and only when every tilt image records it, so parse_tlt_file reads
+        # it straight back. If any is missing we drop the column rather than invent values.
+        order_list = [ti.acquisition_order for ti in cets_ts_md.images]
+        if any(order in [None, "None"] for order in order_list):
+            order_list = []
+
         # Write the file
         with open(tlt_file, "w") as f:
-            if dose_list:
+            if dose_list and order_list:
+                f.writelines(
+                    f"{angle:0.3f} {dose:0.4f} {order:d}\n"
+                    for angle, dose, order in zip(tilt_angles, dose_list, order_list)
+                )
+            elif dose_list:
                 f.writelines(
                     f"{angle:0.3f} {dose:0.4f}\n"
                     for angle, dose in zip(tilt_angles, dose_list)
