@@ -218,7 +218,8 @@ def write_xf(cets_alignment: Alignment, xf_file: Path | str | None) -> None:
         xf_file = validate_new_file(xf_file)
         # Read the required data from the ProjectionAlignment structure. Each
         # ProjectionAlignment.sequence keeps the same order used when writing:
-        # [Translation, Affine].
+        # [Translation, Affine]. The Affine is the 2x2 rotation block
+        # [[A11, A12], [A21, A22]]; the shifts live in the Translation.
         # pixel_size = cets_ts_md.images[0].pixel_size
         transform_list = []
         for projection_alignment in cets_alignment.projection_alignments:
@@ -232,8 +233,8 @@ def write_xf(cets_alignment: Alignment, xf_file: Path | str | None) -> None:
                 [
                     f"{rot_matrix_elements[0]:.7f}",
                     f"{rot_matrix_elements[1]:.7f}",
+                    f"{rot_matrix_elements[2]:.7f}",
                     f"{rot_matrix_elements[3]:.7f}",
-                    f"{rot_matrix_elements[4]:.7f}",
                     f"{float(f'{sx:.3g}'):>6}",
                     f"{float(f'{sy:.3g}'):>6}",
                 ]
