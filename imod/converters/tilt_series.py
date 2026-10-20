@@ -18,7 +18,7 @@ from cets_data_model.models.models import (
     AxisType,
     Translation,
     Vector3D,
-    Matrix3x3,
+    Matrix2x2,
 )
 from cets_data_model.utils.image_utils import get_mrc_info
 from imod.contants import MRC_MRCS_EXT
@@ -267,13 +267,14 @@ class ImodTiltSeries:
         )
 
     @staticmethod
-    def _get_affine_values(xf_matrix: np.ndarray) -> Matrix3x3:
-        """Gets the rotation angle in degrees."""
+    def _get_affine_values(xf_matrix: np.ndarray) -> Matrix2x2:
+        """Gets the 2x2 rotation block of an .xf line (A11 A12 / A21 A22).
+
+        The CETS Affine is the linear part only; the shifts go into the separate
+        Translation step, so the former 3x3 padding is gone.
+        """
         xf_matrix = xf_matrix.tolist()
-        row1: Vector3D = xf_matrix[0]
-        row2: Vector3D = xf_matrix[1]
-        row3: Vector3D = [0, 0, 1]
-        affine_matrix: Matrix3x3 = [row1, row2, row3]
+        affine_matrix: Matrix2x2 = [xf_matrix[0][:2], xf_matrix[1][:2]]
         return affine_matrix
 
     @staticmethod
