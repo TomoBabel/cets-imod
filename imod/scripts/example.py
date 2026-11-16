@@ -41,6 +41,8 @@ doses: list[float]
 orders: list[int]
 tilt_angles, doses, orders = parse_tlt_file(tlt_fn)
 ics.cets_to_imod(yaml_file_ctf, tilt_angles, out_defocus)
+# Tomogram: linked with its CETS id as name
+ImodTomogram.cets_to_imod(cets_tomo_md, scratch_dir / "cets_to_imod_tomograms")
 # Write the tlt and xf
 its.cets_to_imod(
     cets_ts=cets_ts_md,

@@ -1,11 +1,14 @@
 import traceback
 from pathlib import Path
 
+import mrcfile
 import yaml
 
 from cets_data_model.models.models import Tomogram
 from cets_data_model.utils.image_utils import get_mrc_info
 from imod.utils.utils import (
+    export_mrc,
+    get_image_pixel_size,
     validate_even_odd_files,
     validate_new_file,
     validate_file,
@@ -66,15 +69,69 @@ class ImodTomogram:
             coordinate_systems=[array_cs, physical_cs],
             coordinate_transformations=[array_to_physical],
             ctf_corrected=ctf_corrected,
-            even_path=str(even_file_name),
-            odd_path=str(odd_file_name),
+            even_path=str(even_file_name) if even_file_name else None,
+            odd_path=str(odd_file_name) if odd_file_name else None,
         )
         # Write the output yaml file if requested
         self._write_ts_yaml(tomo, out_yaml_file)
         return tomo
 
-    # def cets_to_imod(self):
-    #     pass
+    @staticmethod
+    def cets_to_imod(
+        cets_tomo: Tomogram | Path | str,
+        output_directory: Path | str,
+        copy: bool = False,
+    ) -> Path:
+        """Makes a CETS tomogram available as IMOD files: ``<id>.mrc`` and, if the
+        tomogram has them, its even/odd halves as ``<id>_even.mrc`` and ``<id>_odd.mrc``.
+
+        An IMOD tomogram is an mrc file, the one the CETS tomogram points to, so nothing
+        is converted: each file is linked, or copied if requested or if the voxel size of
+        its header is not the one of the CETS tomogram (the header of the copy is then
+        updated). The rest of the CETS metadata (ctf_corrected, tilt_series_id) has no place
+        in the file.
+
+        :param cets_tomo: CETS tomogram metadata or a yaml file written from it.
+        :type cets_tomo: Tomogram or pathlib.Path or str
+
+        :param output_directory: directory in which the files will be written.
+        :type output_directory: pathlib.Path or str
+
+        :param copy: copy the files instead of linking them.
+        :type copy: bool, optional, Defaults to False
+
+        :returns: the path of the tomogram.
+        """
+        if not isinstance(cets_tomo, Tomogram):
+            with open(cets_tomo) as f:
+                cets_tomo = Tomogram(**next(yaml.safe_load_all(f)))
+        if not cets_tomo.path:
+            raise ValueError(f"The tomogram [{cets_tomo.id}] has no file.")
+        out_dir = Path(output_directory)
+        voxel_size = get_image_pixel_size(cets_tomo)
+        with mrcfile.open(cets_tomo.path, header_only=True, permissive=True) as mrc:
+            header_voxel_size = float(mrc.voxel_size.x)
+        if not header_voxel_size and voxel_size == 1.0:
+            # imod_to_cets sets the voxel size to 1.0 when the header does not have it:
+            # it is a placeholder, not a value to be written in the header.
+            voxel_size = None
+        tomo_file = export_mrc(
+            cets_tomo.path, out_dir / f"{cets_tomo.id}.mrc", voxel_size, copy
+        )
+        for half_path, suffix in (
+            (cets_tomo.even_path, "even"),
+            (cets_tomo.odd_path, "odd"),
+        ):
+            # Yaml files written before the halves were left empty hold the string "None"
+            if half_path and half_path != "None":
+                export_mrc(
+                    half_path,
+                    out_dir / f"{cets_tomo.id}_{suffix}.mrc",
+                    voxel_size,
+                    copy,
+                )
+        print(f"tomogram successfully written! -> {tomo_file}")
+        return tomo_file
 
     @staticmethod
     def _write_ts_yaml(cets_ts_md: Tomogram, yaml_file: Path | str | None) -> None:

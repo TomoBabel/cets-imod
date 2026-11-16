@@ -1,4 +1,5 @@
 import os
+import shutil
 import traceback
 from pathlib import Path
 
@@ -477,3 +478,37 @@ def load_md_list_yaml(yaml_file: Path | str, model_cls: Type[BaseModel]) -> List
 #                     # Manejo de error: podrías continuar o lanzar la excepción
 #
 #     return all_metadata_list
+
+
+def export_mrc(
+    mrc_file: Path | str,
+    out_file: Path | str,
+    voxel_size: float | None = None,
+    copy: bool = False,
+) -> Path:
+    """Makes an mrc file available with another name: as a symbolic link, unless a copy is
+    requested or needed.
+
+    :param voxel_size: voxel size (Å) the file must have in its header. If it is not the one
+    of ``mrc_file``, the file is copied and its header updated, instead of linked.
+    """
+    src = validate_file(mrc_file, "mrc_file", MRC_MRCS_EXT)
+    dst = Path(out_file).expanduser()
+    if dst.exists() or dst.is_symlink():
+        if dst.resolve() == src:
+            return dst
+        raise FileExistsError(f"{dst} already exists")
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    with mrcfile.open(src, header_only=True, permissive=True) as mrc:
+        header_voxel_size = float(mrc.voxel_size.x)
+    fix_header = voxel_size is not None and not np.isclose(
+        header_voxel_size, voxel_size, rtol=1e-4
+    )
+    if not (copy or fix_header):
+        dst.symlink_to(src)
+        return dst
+    shutil.copyfile(src, dst)
+    if fix_header:
+        with mrcfile.open(dst, mode="r+", header_only=True, permissive=True) as mrc:
+            mrc.voxel_size = voxel_size
+    return dst
