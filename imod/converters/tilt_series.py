@@ -61,8 +61,10 @@ class ImodTiltSeries:
         dose rate, tilt axis angle) rather than storing them on the tilt-images.
         """
         self.ts_file_name = validate_file(ts_file_name, "ts_file_name", MRC_MRCS_EXT)
-        if type(tilt_angles) is List[float]:
-            tilt_angles = validate_tilt_angle_list(self.ts_file_name, tilt_angles)
+        if isinstance(tilt_angles, (list, tuple)):
+            tilt_angles = validate_tilt_angle_list(
+                self.ts_file_name, [float(angle) for angle in tilt_angles]
+            )
             tlt_file, dose_list, acq_orders = None, None, None
         else:
             tlt_file = validate_file(
@@ -97,7 +99,7 @@ class ImodTiltSeries:
         In the current data model the per-projection alignment is NOT stored inside each
         tilt-image's ``coordinate_transformations``. Instead it is represented with the
         dedicated ``ProjectionAlignment`` structure (one per tilt-image, holding the
-        ``[Translation, Affine]`` pair in its ``sequence``), and all of them are aggregated
+        ``[Affine, Translation]`` pair in its ``sequence``), and all of them are aggregated
         into a single ``Alignment`` for the tilt-series. ``Alignment`` objects live under
         ``Region.alignments``; since this converter emits a bare ``TiltSeries`` (not a
         ``Region``), the ``Alignment`` is returned alongside it for higher-level assembly.
@@ -141,9 +143,21 @@ class ImodTiltSeries:
         width = img_info.size_x
         height = img_info.size_y
         # pix_size = img_info.apix_x
-        # Parse xf file
-        xf_file = validate_file(xf_file, "xf_file", ".xf")
-        in_rotation_matrix_pile, in_translation_vector_pile = parse_xf_file(xf_file)
+        # Parse xf file (identity alignment if not provided: no rotation, no shift)
+        if xf_file is None:
+            in_rotation_matrix_pile = np.zeros([2, 3, self.n_imgs])
+            in_rotation_matrix_pile[0, 0, :] = 1.0
+            in_rotation_matrix_pile[1, 1, :] = 1.0
+            in_translation_vector_pile = np.zeros([3, self.n_imgs])
+        else:
+            xf_file = validate_file(xf_file, "xf_file", ".xf")
+            in_rotation_matrix_pile, in_translation_vector_pile = parse_xf_file(xf_file)
+            n_xf = in_rotation_matrix_pile.shape[2]
+            if n_xf != self.n_imgs:
+                raise ValueError(
+                    f"The xf file {xf_file} has {n_xf} transformations, but there are "
+                    f"{self.n_imgs} tilt angles."
+                )
 
         ts_filename = str(self.ts_file_name)
         ts_id = self.ts_file_name.stem
