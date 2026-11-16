@@ -1,10 +1,18 @@
 import math
 import traceback
 from pathlib import Path
-from typing import List, Tuple, Dict
+from typing import List, Dict
 import yaml
 from cets_data_model.models.models import CTFMetadata
-from imod.contants import MRC_MRCS_EXT
+from imod.contants import (
+    MRC_MRCS_EXT,
+    DEFOCUS_FLAG_ASTIGMATISM,
+    DEFOCUS_FLAG_ANGLE_IN_RADIANS,
+    DEFOCUS_FLAG_PHASE_SHIFT,
+    DEFOCUS_FLAG_PHASE_IN_RADIANS,
+    DEFOCUS_FLAG_CUT_ON,
+    DEFOCUS_FILE_VERSION_3,
+)
 from imod.utils.utils import (
     get_ts_no_imgs,
     standarize_defocus,
@@ -12,6 +20,17 @@ from imod.utils.utils import (
     validate_file,
     validate_new_file,
 )
+
+# Names of the columns of the IMOD defocus files
+START_VIEW = "start_view"
+END_VIEW = "end_view"
+START_ANGLE = "start_angle"
+END_ANGLE = "end_angle"
+DEFOCUS_U = "defocus_u"
+DEFOCUS_V = "defocus_v"
+DEFOCUS_ANGLE = "defocus_angle"
+PHASE_SHIFT = "phase_shift"
+CUT_ON_FREQUENCY = "cut_on_frequency"
 
 
 class ImodCtfSeries:
@@ -39,8 +58,8 @@ class ImodCtfSeries:
     ) -> None:
         """Reads a .yaml file containing the serialized CETS CTFMetadata objects of
         all the tilt-images that compose a tilt-series and generates the corresponding
-        IMOD defocus file."""
-        # TODO: check the phase shift
+        IMOD defocus file (version 3, with astigmatism and, if any image has a non-zero
+        phase shift, phase shifts in degrees)."""
         md_list = load_md_list_yaml(ctf_yaml_file, CTFMetadata)
         n_data_sec = len(md_list)
         n_angles = len(tilt_angle_list)
@@ -49,150 +68,70 @@ class ImodCtfSeries:
                 f"The number of data sections [{n_data_sec}] must be the same "
                 f"as the number of angles [{n_angles}] provided."
             )
+        has_phase_shift = any(md.get(PHASE_SHIFT) for md in md_list)
+        flag = DEFOCUS_FLAG_ASTIGMATISM
+        if has_phase_shift:
+            flag += DEFOCUS_FLAG_PHASE_SHIFT
         with open(defocus_file, "w") as f:
-            lines = ["1\t0\t0.0\t0.0\t0.0\t3\n"]
+            lines = [f"{flag}\t0\t0.0\t0.0\t0.0\t{DEFOCUS_FILE_VERSION_3}\n"]
             for i, ctf_md_dict in enumerate(md_list):
                 ind = i + 1  # Indices in IMOD start in 1
                 tilt_angle = tilt_angle_list[i]
-                newLine = "%i\t%i\t%.2f\t%.2f\t%.1f\t%.1f\t%.2f\n" % (
+                newLine = "%i\t%i\t%.2f\t%.2f\t%.1f\t%.1f\t%.2f" % (
                     ind,
                     ind,
                     tilt_angle,
                     tilt_angle,
-                    ctf_md_dict["defocus_u"] / 10,  # Defocus value in Imod is in nm
-                    ctf_md_dict["defocus_v"] / 10,
-                    ctf_md_dict["defocus_angle"],
+                    ctf_md_dict[DEFOCUS_U] / 10,  # Defocus value in Imod is in nm
+                    ctf_md_dict[DEFOCUS_V] / 10,
+                    ctf_md_dict[DEFOCUS_ANGLE],
                 )
-
-                lines.append(newLine)
+                if has_phase_shift:
+                    newLine += "\t%.2f" % (ctf_md_dict.get(PHASE_SHIFT) or 0.0)
+                lines.append(newLine + "\n")
             f.writelines(lines)
         print(f"defocus file successfully writen! -> {defocus_file}")
 
     def _parse_defocus_file(
         self, out_yaml_file: str | Path | None = None
     ) -> List[CTFMetadata]:
-        """Parse tilt-series ctf estimation file."""
-        defocusFileFlag = self._get_defocus_file_flag()
-        (defocus_u_dict, defocus_v_dict, defocus_angle_dict, phase_shift_dict) = (
-            dict(),
-            dict(),
-            dict(),
-            dict(),
-        )
+        """Parse tilt-series ctf estimation file.
 
-        if defocusFileFlag == 0:
-            # Plain estimation
-            defocus_u_dict = self._load_ctf_file(defocusFileFlag)
+        Every combination of the flags of the IMOD defocus file format is supported (see
+        ``_get_defocus_file_flag``):
 
-        elif defocusFileFlag == 1:
-            # Astigmatism estimation
-            defocus_u_dict, defocus_v_dict, defocus_angle_dict = self._load_ctf_file(
-                defocusFileFlag
-            )
+        * Defoci are converted from nm to Å (underfocus positive in both).
+        * The astigmatism angle and the phase shift are converted to degrees when the flags
+          say they are in radians.
+        * The tilt-angle inversion flag does not change the values read, as they are
+          assigned to the views by their number, not by their angle.
+        * The phase shift is 0 when the file has none.
+        * The cut-on frequencies are not kept, as CTFMetadata has no field for them.
 
-        elif defocusFileFlag == 4:
-            # Phase-shift information
-            defocus_u_dict, phase_shift_dict = self._load_ctf_file(defocusFileFlag)
-
-        elif defocusFileFlag == 5:
-            # Astigmatism and phase shift estimation
-            defocus_u_dict, defocus_v_dict, defocus_angle_dict, phase_shift_dict = (
-                self._load_ctf_file(defocusFileFlag)
-            )
-
-        elif defocusFileFlag == 37:
-            # Astigmatism, phase shift and cut-on frequency estimation
-            defocus_u_dict, defocus_v_dict, defocus_angle_dict, phase_shift_dict = (
-                self._load_ctf_file(defocusFileFlag)
-            )
-
-        else:
-            raise ValueError(
-                f"Defocus file flag {defocusFileFlag} is not supported. Only supported formats "
-                "correspond to flags 0, 1, 4, 5, and 37."
-            )
+        When a view is covered by several lines (ranges of views fitted together), the
+        middle estimation is taken (the mean of the two middle ones if there is an even
+        number of them).
+        """
+        flag = self._get_defocus_file_flag()
+        values_per_view = self._load_ctf_file(flag)
 
         n_imgs = get_ts_no_imgs(self.ts_file_name)
         ctf_md_list = []
-        for i in range(1, n_imgs + 1):
-            defocus_u_list = defocus_u_dict.get(i, [])
-            defocus_v_list = defocus_v_dict.get(i, [])
-            # phase_shift_list = phase_shift_dict.get(i, [])
-            defocus_angle_list = defocus_angle_dict.get(i, [])
-            len_defocus_angle_list = len(defocus_angle_list)
-            # len_phase_shift_list = len(phase_shift_list)
-
-            # DEFOCUS INFORMATION --------------------------------------------------------------------------------------
-            if defocus_u_list and defocus_v_list:
-                # Check that the three list are equally long
-                len_defocus_u_list = len(defocus_u_list)
-                if (
-                    len_defocus_u_list + len(defocus_v_list) + len_defocus_angle_list
-                ) % 3 != 0:
-                    raise Exception(
-                        "defocus_u_list, defocus_v_list and defocus_angle_list lengths must be equal."
-                    )
-
-                # DefocusU, DefocusV and DefocusAngle are set equal to the middle estimation of the list
-                middlePoint = math.trunc(len_defocus_u_list / 2)
-
-                # If the size of the defocus list is even, mean the 2 centre values
-                if len_defocus_u_list % 2 == 0:
-                    defocus_u = (
-                        defocus_u_list[middlePoint] + defocus_u_list[middlePoint - 1]
-                    ) / 2
-                    defocus_v = (
-                        defocus_v_list[middlePoint] + defocus_v_list[middlePoint - 1]
-                    ) / 2
-                    defocus_angle = (
-                        defocus_angle_list[middlePoint]
-                        + defocus_angle_list[middlePoint - 1]
-                    ) / 2
-                else:
-                    defocus_u = defocus_u_list[middlePoint]
-                    defocus_v = defocus_v_list[middlePoint]
-                    defocus_angle = defocus_angle_list[middlePoint]
-
+        for view in range(1, n_imgs + 1):  # Views in IMOD are numbered from 1
+            view_values = values_per_view.get(view, {})
+            defocus_u = self._middle_value(view_values, DEFOCUS_U, view)
+            if DEFOCUS_V in view_values:
+                defocus_v = self._middle_value(view_values, DEFOCUS_V, view)
+                defocus_angle = self._middle_value(view_values, DEFOCUS_ANGLE, view)
             else:
-                defocus_list = defocus_u_list if defocus_u_list else defocus_v_list
-                len_defocus_list = len(defocus_list)
-                defocus_angle = 0
-                # DefocusU and DefocusV are set at the same value, equal to the middle
-                # estimation of the list
-                middle_point = math.trunc(len_defocus_list / 2)
-                # If the size of the defocus list is even, mean the 2 centre values
-                if len_defocus_list % 2 == 0:
-                    defocus_u = (
-                        defocus_list[middle_point] + defocus_list[middle_point - 1]
-                    ) / 2
-                else:
-                    # The size of defocus estimation is odd, get the centre value
-                    defocus_u = defocus_list[middle_point]
+                # No astigmatism: both defoci are the same
                 defocus_v = defocus_u
-
-            # PHASE SHIFT INFORMATION ----------------------------------------------------------------------------------
-            # Check that all the lists are equally long
-            # phase_shift = 0
-            # if phase_shift_list:
-            #     if (len(defocus_u_list) + len_phase_shift_list) % 2 != 0:
-            #         raise Exception(
-            #             f"phase_shift_list length [{len_phase_shift_list}] must be equal to "
-            #             f"defocus_u_list [{len(defocus_u_list)}] lengths."
-            #         )
-            #
-            #     # PhaseShift is set equal to the middle estimation of the list
-            #     middlePoint = math.trunc(len(phase_shift_list) / 2)
-            #
-            #     # If the size of the phase shift list is even, mean the 2 centre values
-            #     if len(phase_shift_list) % 2 == 0:
-            #         phase_shift = (
-            #             phase_shift_list[middlePoint]
-            #             + phase_shift_list[middlePoint - 1]
-            #         ) / 2
-            #     else:
-            #         # If the size of phase shift list estimation is odd, get the centre value
-            #         phase_shift = phase_shift_list[middlePoint]
-
+                defocus_angle = 0.0
+            phase_shift = (
+                self._middle_value(view_values, PHASE_SHIFT, view)
+                if PHASE_SHIFT in view_values
+                else 0.0
+            )
             defocus_u, defocus_v, defocus_angle = standarize_defocus(
                 defocus_u, defocus_v, defocus_angle
             )
@@ -201,7 +140,7 @@ class ImodCtfSeries:
                     defocus_u=defocus_u,
                     defocus_v=defocus_v,
                     defocus_angle=defocus_angle,
-                    # phase_shift=phase_shift,
+                    phase_shift=phase_shift,
                 )
             )
         # Write the output yaml file if requested
@@ -222,265 +161,98 @@ class ImodCtfSeries:
              32 if the file has cut-on frequencies attenuating the phase
                  at low frequencies"
 
-         (from https://bio3d.colorado.edu/imod/doc/man/ctfphaseflip.html)."""
+         (from https://bio3d.colorado.edu/imod/doc/man/ctfphaseflip.html).
 
+         Only version 3 files, whose first line is the header "flags 0 0. 0. 0 3", have
+         flags. Versions 1 and 2 only have defocus values, which corresponds to flag 0."""
         with open(self.defocus_file) as f:
-            lines = f.readlines()
-        # File contains only defocus information (no astigmatism, no phase shift,
-        # no cut-on frequency)
-        if len(lines) == 1:
-            return 0
-        elif len(lines[1].split()) == 5:
-            return 0
-        # File contains more information apart
-        return int(lines[0].split()[0])
-
-    def _load_ctf_file(self, flag: int):
-        """This method takes an IMOD-based file path containing the
-        information associated to a CTF estimation and produces a set
-        of dictionaries containing the information of each parameter
-        for each tilt-image belonging to the tilt-series."""
-
-        # Read info as table
-        ctf_info_imod_table = self._defocus_file_to_table()
-
-        if flag == 0:
-            # Plain estimation
-            return self._refactor_ctf_flag_0(ctf_info_imod_table)
-
-        elif flag == 1:
-            # Astigmatism estimation
-            return self._refactor_ctf_flag_1(ctf_info_imod_table)
-
-        elif flag == 4:
-            # Phase-shift estimation
-            return self._refactor_ctf_flag_4(ctf_info_imod_table)
-
-        elif flag == 5:
-            # Astigmatism and phase shift estimation
-            return self._refactor_ctf_flag_5(ctf_info_imod_table)
-
-        elif flag == 37:
-            # Astigmatism, phase shift and cut-on frequency estimation
-            return self._refactor_ctf_flag_37(ctf_info_imod_table)
-
-        else:
-            raise ValueError(
-                "Defocus file flag do not supported. Only supported formats corresponding to flags 0, "
-                "1, 4, 5, and 37."
-            )
-
-    def _defocus_file_to_table(self) -> List[List[float]]:
-        """This method takes an IMOD-based ctf estimation file
-        and returns a table containing the CTF estimation
-        information of each tilt-image (per line) belonging to the tilt-series."""
-        defocusTable = []
-
-        with open(self.defocus_file) as f:
-            lines = f.readlines()
-
-        for index, line in enumerate(lines):
-            vector = [float(i) for i in line.split()]
-
-            if index == 0 and len(lines) == 1:
-                # CTF estimation is plain (no astigmatism, no phase shift, no cut-on frequency) and is the first line.
-                # Remove last element from the first line (it contains the mode of the estimation run). This case
-                # considers that the estimation file only has one line.
-                vector.pop()
-                defocusTable.append(vector)
-
-            elif index == 0 and len(lines[1].split()) == 5:
-                # CTF estimation is plain (no astigmatism, no phase shift, no cut-on frequency) and is the first line.
-                # Remove last element from the first line (it contains the mode of the estimation run).
-                vector.pop()
-                defocusTable.append(vector)
-
-            elif index == 0 and len(lines[1].split()) != 5:
-                # CTF estimation is not plain and is the first line.
-                # Do not add this line to the table. Only contains flag and format info.
-                pass
-
-            else:
-                # Any posterior line that is not the first one is added to the table .
-                defocusTable.append(vector)
-
-        return defocusTable
+            first_line = f.readline().split()
+        if self._is_version_3_header(first_line):
+            return int(float(first_line[0]))
+        return 0
 
     @staticmethod
-    def _append_to_dict(dictionary: dict, index: int, value: float) -> None:
-        # Python Dictionary setdefault() returns the value of a key (if the key is in dictionary).
-        # Else, it inserts a key with the default value to the dictionary.
-        dictionary.setdefault(index, []).append(value)
-
-    def _refactor_ctf_flag_0(
-        self, ctf_info_imod_table: List[List[float]]
-    ) -> dict[int, list[float]]:
-        """This method takes a table containing the information of
-        an IMOD-based CTF estimation containing only defocus
-        information (5 columns) and produces a dictionary for clearer
-        and easier management. Flag 0 (Plain estimation)."""
-
-        if len(ctf_info_imod_table[0]) != 5:
-            raise Exception(
-                "Misleading file format, CTF estimation with no astigmatism should be 5 columns long"
+    def _is_version_3_header(fields: List[str]) -> bool:
+        """The header of version 3 files is "flags 0 0. 0. 0 3". Data lines cannot be
+        confused with it, as their second value (ending view) is numbered from 1."""
+        try:
+            return (
+                len(fields) == 6
+                and float(fields[1]) == 0
+                and float(fields[5]) == DEFOCUS_FILE_VERSION_3
             )
+        except ValueError:
+            return False
 
-        defocus_u_dict: Dict[int, List[float]] = {}
+    @staticmethod
+    def _get_defocus_file_columns(flag: int) -> List[str]:
+        """Names of the columns of the data lines of a defocus file with the given flag:
+        starting and ending view, starting and ending tilt angle and defocus, followed by the
+        optional columns in the order the format defines them."""
+        columns = [START_VIEW, END_VIEW, START_ANGLE, END_ANGLE, DEFOCUS_U]
+        if flag & DEFOCUS_FLAG_ASTIGMATISM:
+            columns += [DEFOCUS_V, DEFOCUS_ANGLE]
+        if flag & DEFOCUS_FLAG_PHASE_SHIFT:
+            columns.append(PHASE_SHIFT)
+        if flag & DEFOCUS_FLAG_CUT_ON:
+            columns.append(CUT_ON_FREQUENCY)
+        return columns
 
-        for element in ctf_info_imod_table:
-            start, end = int(element[0]), int(element[1])
-            defocus = float(element[4]) * 10
+    def _load_ctf_file(self, flag: int) -> Dict[int, Dict[str, List[float]]]:
+        """Reads the data lines of the defocus file and returns, for each view (numbered
+        from 1), the list of estimations of each value (defoci in Å, angles in degrees). A
+        view has several estimations when it is covered by several lines."""
+        columns = self._get_defocus_file_columns(flag)
+        values_per_view: Dict[int, Dict[str, List[float]]] = {}
+        for row in self._defocus_file_to_table(flag):
+            if len(row) != len(columns):
+                raise ValueError(
+                    f"The data lines of {self.defocus_file} (flag {flag}) should have "
+                    f"{len(columns)} columns ({', '.join(columns)}), but one has "
+                    f"{len(row)}: {row}"
+                )
+            values = dict(zip(columns, row))
+            values[DEFOCUS_U] *= 10  # From nm to angstroms
+            if DEFOCUS_V in values:
+                values[DEFOCUS_V] *= 10  # From nm to angstroms
+            if flag & DEFOCUS_FLAG_ANGLE_IN_RADIANS and DEFOCUS_ANGLE in values:
+                values[DEFOCUS_ANGLE] = math.degrees(values[DEFOCUS_ANGLE])
+            if flag & DEFOCUS_FLAG_PHASE_IN_RADIANS and PHASE_SHIFT in values:
+                values[PHASE_SHIFT] = math.degrees(values[PHASE_SHIFT])
+            for view in range(int(values[START_VIEW]), int(values[END_VIEW]) + 1):
+                view_values = values_per_view.setdefault(view, {})
+                for field in (DEFOCUS_U, DEFOCUS_V, DEFOCUS_ANGLE, PHASE_SHIFT):
+                    if field in values:
+                        view_values.setdefault(field, []).append(values[field])
+        return values_per_view
 
-            for index in range(start, end + 1):
-                self._append_to_dict(defocus_u_dict, index, defocus)
+    def _defocus_file_to_table(self, flag: int) -> List[List[float]]:
+        """This method takes an IMOD-based ctf estimation file and returns a table
+        containing the values of each data line. The header line of version 3 files is
+        skipped, and the version number that the first line of version 1 and 2 files may
+        have at its end is removed."""
+        with open(self.defocus_file) as f:
+            lines = [line.split() for line in f if line.strip()]
+        if lines and self._is_version_3_header(lines[0]):
+            lines = lines[1:]
+        elif lines and len(lines[0]) > len(self._get_defocus_file_columns(flag)):
+            lines[0] = lines[0][:-1]  # Version number
+        return [[float(value) for value in line] for line in lines]
 
-        return defocus_u_dict
-
-    def _refactor_ctf_flag_1(
-        self, ctf_info_imod_table: List[List[float]]
-    ) -> Tuple[dict[int, list[float]], dict[int, list[float]], dict[int, list[float]]]:
-        """This method takes a table containing the information of an
-        IMOD-based CTF estimation containing defocus and
-        astigmatism information (7 columns) and produces a set
-        of dictionaries for clearer and easier management. Flag 1
-        (Astigmatism estimation)."""
-
-        if len(ctf_info_imod_table[0]) != 7:
-            raise Exception(
-                "Misleading file format, CTF estimation "
-                "with astigmatism should be 7 columns long"
+    def _middle_value(
+        self, view_values: Dict[str, List[float]], field: str, view: int
+    ) -> float:
+        """Middle estimation of a value of a view, or the mean of the two middle ones if
+        there is an even number of them."""
+        values = view_values.get(field, [])
+        if not values:
+            raise ValueError(
+                f"The view {view} has no {field} in the defocus file {self.defocus_file}"
             )
-        defocus_u_dict: Dict[int, List[float]] = {}
-        defocus_v_dict: Dict[int, List[float]] = {}
-        defocus_angle_dict: Dict[int, List[float]] = {}
-
-        for element in ctf_info_imod_table:
-            start, end = int(element[0]), int(element[1])
-            defocus_u = float(element[4]) * 10  # From nm to angstroms
-            defocus_v = float(element[5]) * 10  # From nm to angstroms
-            defocus_angle = float(element[6])
-
-            # Segregate information from range
-            for index in range(start, end + 1):
-                self._append_to_dict(defocus_u_dict, index, defocus_u)
-                self._append_to_dict(defocus_v_dict, index, defocus_v)
-                self._append_to_dict(defocus_angle_dict, index, defocus_angle)
-
-        return defocus_u_dict, defocus_v_dict, defocus_angle_dict
-
-    def _refactor_ctf_flag_4(
-        self, ctf_info_imod_table: List[List[float]]
-    ) -> Tuple[dict[int, list[float]], dict[int, list[float]]]:
-        """This method takes a table containing the information of
-        an IMOD-based CTF estimation containing defocus, and phase
-        shift information (6 columns) and produces a new set of
-        dictionaries for clearer and easier management. Flag 4
-        (Phase-shift estimation)."""
-
-        if len(ctf_info_imod_table[0]) != 6:
-            raise Exception(
-                "Misleading file format, CTF estimation with defocus "
-                "and phase shift should be 6 columns long"
-            )
-
-        defocus_u_dict: Dict[int, List[float]] = {}
-        phase_shift_dict: Dict[int, List[float]] = {}
-
-        for element in ctf_info_imod_table:
-            start, end = int(element[0]), int(element[1])
-            defocus_u = float(element[4]) * 10
-            phase_shift = float(element[5])
-
-            for index in range(start, end + 1):
-                self._append_to_dict(defocus_u_dict, index, defocus_u)
-                self._append_to_dict(phase_shift_dict, index, phase_shift)
-
-        return defocus_u_dict, phase_shift_dict
-
-    def _refactor_ctf_flag_5(
-        self, ctf_info_imod_table: List[List[float]]
-    ) -> Tuple[
-        dict[int, list[float]],
-        dict[int, list[float]],
-        dict[int, list[float]],
-        dict[int, list[float]],
-    ]:
-        """This method takes a table containing the information of
-        an IMOD-based CTF estimation containing defocus, astigmatism
-        and phase shift information (8 columns) and produces a new
-        set of dictionaries for clearer and easier management.
-        Flag 5 (Astigmatism and phase shift estimation)."""
-
-        if len(ctf_info_imod_table[0]) != 8:
-            raise Exception(
-                "Misleading file format, CTF estimation with astigmatism and phase "
-                "shift should be 8 columns long"
-            )
-
-        defocus_u_dict: Dict[int, List[float]] = {}
-        defocus_v_dict: Dict[int, List[float]] = {}
-        defocus_angle_dict: Dict[int, List[float]] = {}
-        phase_shift_dict: Dict[int, List[float]] = {}
-
-        for element in ctf_info_imod_table:
-            start, end = int(element[0]), int(element[1])
-            defocus_u = float(element[4]) * 10
-            defocus_v = float(element[5]) * 10
-            angle = float(element[6])
-            phase_shift = float(element[7])
-
-            for index in range(start, end + 1):
-                self._append_to_dict(defocus_u_dict, index, defocus_u)
-                self._append_to_dict(defocus_v_dict, index, defocus_v)
-                self._append_to_dict(defocus_angle_dict, index, angle)
-                self._append_to_dict(phase_shift_dict, index, phase_shift)
-
-        return defocus_u_dict, defocus_v_dict, defocus_angle_dict, phase_shift_dict
-
-    def _refactor_ctf_flag_37(
-        self, ctf_info_imod_table: List[List[float]]
-    ) -> Tuple[
-        dict[int, list[float]],
-        dict[int, list[float]],
-        dict[int, list[float]],
-        dict[int, list[float]],
-    ]:
-        """This method takes a table containing the information of an
-        IMOD-based CTF estimation containing defocus, astigmatism, phase
-        shift information and cut-on frequency (8 columns) and produces a
-        new set of dictionaries for clearer and easier management.
-        Flag 37 (Astigmatism, phase shift and cut-on frequency estimation)."""
-
-        if len(ctf_info_imod_table[0]) != 9:
-            raise Exception(
-                "Misleading file format, CTF estimation with astigmatism, "
-                "phase shift and cut-on frequency should be 9 columns long"
-            )
-
-        defocus_u_dict: Dict[int, List[float]] = {}
-        defocus_v_dict: Dict[int, List[float]] = {}
-        defocus_angle_dict: Dict[int, List[float]] = {}
-        phase_shift_dict: Dict[int, List[float]] = {}
-
-        for element in ctf_info_imod_table:
-            start, end = int(element[0]), int(element[1])
-            defocus_u = float(element[4]) * 10
-            defocus_v = float(element[5]) * 10
-            angle = float(element[6])
-            phase_shift = float(element[7])
-
-            for index in range(start, end + 1):
-                self._append_to_dict(defocus_u_dict, index, defocus_u)
-                self._append_to_dict(defocus_v_dict, index, defocus_v)
-                self._append_to_dict(defocus_angle_dict, index, angle)
-                self._append_to_dict(phase_shift_dict, index, phase_shift)
-
-        return (
-            defocus_u_dict,
-            defocus_v_dict,
-            defocus_angle_dict,
-            phase_shift_dict,
-        )
+        middle = len(values) // 2
+        if len(values) % 2 == 0:
+            return (values[middle - 1] + values[middle]) / 2
+        return values[middle]
 
     @staticmethod
     def _write_ctf_yaml(
@@ -502,50 +274,3 @@ class ImodCtfSeries:
                 f"the exception -> {e}"
             )
             print(traceback.format_exc())
-
-
-# # READER EXAMPLE
-# import yaml
-# from os.path import exists
-# from os import remove
-#
-# f_path = Path(
-#     "/home/jjimenez/scipion3/data/tests/relion40_sta_tutorial_data/tomograms/TS_03"
-# )
-# ts_file = f_path.joinpath("03.mrc")
-# f_path_defocus = Path(
-#     "/home/jjimenez/scipion3/data/tests/relion40_sta_tutorial_data/testImodCtf"
-# )
-# defocus_f = f_path_defocus.joinpath("TS_03.defocus")
-#
-# ics = ImodCtfSeries(ts_file_name=Path(ts_file), defocus_file=Path(defocus_f))
-# mdList = ics.imod_to_cets()
-#
-# output_path = Path("/home/jjimenez/CZII/cets_scratch_dir")
-# yaml_file = output_path.joinpath("TS_03_cets_ctf.yaml")
-# if exists(yaml_file):
-#     remove(yaml_file)
-#
-# with open(yaml_file, "a") as file:
-#     for metadata in mdList:
-#         metadata_dict = metadata.model_dump()
-#         yaml_output = yaml.dump(
-#             metadata_dict, file, sort_keys=False, explicit_start=True
-#         )
-#
-# for metadata in mdList:
-#     metadata_dict = metadata.model_dump()
-#     yaml_output = yaml.dump(metadata_dict, sort_keys=False, explicit_start=True)
-#     print(yaml_output)
-#
-# # WRITER EXAMPLE
-# tlt_file = f_path.joinpath("03.rawtlt")
-# with open(tlt_file, "r") as f:
-#     tilt_angle_list = [float(line.strip()) for line in f if line.strip()]
-#
-# output_defocus_file = output_path.joinpath("TS_03.defocus")
-# if exists(output_defocus_file):
-#     remove(output_defocus_file)
-# ics.cets_to_imod(yaml_file, tilt_angle_list, output_defocus_file)
-#
-# print(f"Defocus file written written from CETS {output_defocus_file}")
