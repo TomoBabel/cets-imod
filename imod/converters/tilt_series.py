@@ -46,8 +46,14 @@ class ImodTiltSeries:
         amplitude_contrast: Optional[float] = None,
         dose_rate: Optional[float] = None,
         tilt_axis_angle: Optional[float] = None,
+        refined_tilt_angles: str | Path | List[float] | None = None,
     ) -> None:
-        """:param voltage: acceleration voltage in kV.
+        """:param tilt_angles: nominal tilt angles (the ones reported by the microscope),
+        as a list or as an IMOD tilt angles file (.rawtlt, or a .tlt holding them).
+        :param refined_tilt_angles: tilt angles refined by the alignment (the .tlt written by
+        tiltalign), as a list or as a .tlt file. They are stored in the
+        ``ProjectionAlignment``s, as they are a result of the alignment.
+        :param voltage: acceleration voltage in kV.
         :param spherical_aberration: spherical aberration (Cs) in mm.
         :param amplitude_contrast: amplitude contrast fraction (dimensionless).
         :param dose_rate: dose rate during acquisition in e-/A^2/s.
@@ -72,6 +78,9 @@ class ImodTiltSeries:
             )
             tilt_angles, dose_list, acq_orders = parse_tlt_file(tlt_file)
         n_imgs = len(tilt_angles)
+        self.refined_tilt_angles = self._load_refined_tilt_angles(
+            refined_tilt_angles, n_imgs
+        )
         self.ctf_md_list = validate_ctf_md_list(ctf_md_list, n_imgs)
         self.tlt_file = tlt_file
         self.tilt_angles = tilt_angles
@@ -85,6 +94,26 @@ class ImodTiltSeries:
         self.amplitude_contrast = amplitude_contrast
         self.dose_rate = dose_rate
         self.tilt_axis_angle = tilt_axis_angle
+
+    @staticmethod
+    def _load_refined_tilt_angles(
+        refined_tilt_angles: str | Path | List[float] | None, n_imgs: int
+    ) -> Optional[List[float]]:
+        """Refined tilt angles as a list (one per tilt-image), or None if not given."""
+        if refined_tilt_angles is None:
+            return None
+        if isinstance(refined_tilt_angles, (list, tuple)):
+            angles = [float(angle) for angle in refined_tilt_angles]
+        else:
+            tlt_file = validate_file(
+                str(refined_tilt_angles), "refined_tilt_angles", ".tlt"
+            )
+            angles, _, _ = parse_tlt_file(tlt_file)
+        if len(angles) != n_imgs:
+            raise ValueError(
+                f"Expected {n_imgs} refined tilt angles, but got {len(angles)}."
+            )
+        return angles
 
     def imod_to_cets(
         self,
@@ -226,6 +255,11 @@ class ImodTiltSeries:
                     input_cs=physical_cs.name,
                     output_cs=f"tilt_series_{ts_id}_physical",
                     section=index,
+                    refined_tilt_angle=(
+                        self.refined_tilt_angles[index]
+                        if self.refined_tilt_angles
+                        else None
+                    ),
                 )
             )
         ts = TiltSeries(
@@ -262,13 +296,16 @@ class ImodTiltSeries:
         alignment: Optional[Alignment] = None,
         add_dose_to_tlt: bool = True,
         xf_file: str | Path | None = None,
+        rawtlt_file: str | Path | None = None,
     ):
         """Converts CETS Tilt-series metadata into IMOD files.
 
         :param cets_ts: CETS tilt-series metadata or a yaml file written from it.
         :type cets_ts: TiltSeries or pathlib.Path or str
 
-        :param tlt_file: output tlt file to be generated.
+        :param tlt_file: output tlt file to be generated, with the tilt angles IMOD uses to
+        reconstruct: the refined ones of the alignment if it has them for every tilt-image
+        (as the .tlt written by tiltalign), or else the nominal ones.
         :type tlt_file: pathlib.Path or str
 
         :param alignment: CETS Alignment holding one ProjectionAlignment per tilt-image
@@ -282,11 +319,22 @@ class ImodTiltSeries:
 
         :param xf_file: output xf file to be generated.
         :type: pathlib.Path or str, optional, Defaults to None
+
+        :param rawtlt_file: output file with the nominal tilt angles (IMOD's .rawtlt).
+        :type: pathlib.Path or str, optional, Defaults to None
         """
         if type(cets_ts) is not TiltSeries:
             cets_ts = load_md_list_yaml(cets_ts, TiltSeries)
-        # Write the tlt file
-        write_tlt(cets_ts, tlt_file, add_dose_to_tlt=add_dose_to_tlt)
+        # Write the tlt file: refined angles if the alignment has them, else nominal ones
+        refined_angles = ImodTiltSeries._get_refined_tilt_angles(cets_ts, alignment)
+        write_tlt(
+            cets_ts,
+            tlt_file,
+            add_dose_to_tlt=add_dose_to_tlt,
+            tilt_angles=refined_angles,
+        )
+        if rawtlt_file is not None:
+            write_tlt(cets_ts, rawtlt_file, add_dose_to_tlt=add_dose_to_tlt)
         if xf_file is not None:
             if alignment is None:
                 print(
@@ -300,6 +348,30 @@ class ImodTiltSeries:
                 pixel_sizes = [get_image_pixel_size(img) for img in images]
                 write_xf(alignment, xf_file, pixel_sizes=pixel_sizes)
 
+    @staticmethod
+    def _get_refined_tilt_angles(
+        cets_ts: TiltSeries, alignment: Optional[Alignment]
+    ) -> Optional[List[float]]:
+        """Refined tilt angle of each tilt-image (in the order of ``cets_ts.images``), taken
+        from the ProjectionAlignment that references it (tilt_image_id) or, if they do not
+        reference the tilt-images, from the one in the same position. None if there is no
+        alignment or it does not have a refined tilt angle for every tilt-image."""
+        if alignment is None or not alignment.projection_alignments:
+            return None
+        images = cets_ts.images or []
+        projections = alignment.projection_alignments
+        by_image = {p.tilt_image_id: p for p in projections if p.tilt_image_id}
+        if by_image and all(ti.id in by_image for ti in images):
+            matched = [by_image[ti.id] for ti in images]
+        elif len(projections) == len(images):
+            matched = list(projections)
+        else:
+            return None
+        angles = [p.refined_tilt_angle for p in matched]
+        if any(angle is None for angle in angles):
+            return None
+        return [float(angle) for angle in angles if angle is not None]
+
     def _gen_projection_alignment(
         self,
         translation_matrix: np.ndarray,
@@ -310,6 +382,7 @@ class ImodTiltSeries:
         input_cs: str | None = None,
         output_cs: str | None = None,
         section: int = 0,
+        refined_tilt_angle: float | None = None,
     ) -> ProjectionAlignment:
         """Builds the per-projection alignment as a ProjectionAlignment whose ``sequence``
         is ``[Affine, Translation]`` (rotation applied first, then shift, shifts in Å),
@@ -321,10 +394,12 @@ class ImodTiltSeries:
         :param input_cs: name of the tilt-image physical coordinate system.
         :param output_cs: name of the shared tilt-series aligned physical coordinate system.
         :param section: 0-based projection index, used for the alignment name.
+        :param refined_tilt_angle: tilt angle refined by the alignment, in degrees.
         """
         return ProjectionAlignment(
             id=projection_alignment_id,
             tilt_image_id=tilt_image_id,
+            refined_tilt_angle=refined_tilt_angle,
             sequence=[
                 self._gen_affine_transform(rotation_matrix),
                 self._gen_translation_transform(translation_matrix, pix_size),

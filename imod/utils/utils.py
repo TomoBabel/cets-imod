@@ -236,18 +236,29 @@ def get_acq_order_from_doses(dose_list: List[float]) -> List[int]:
 
 
 def write_tlt(
-    cets_ts_md: TiltSeries, tlt_file: Path | str | None, add_dose_to_tlt: bool = False
+    cets_ts_md: TiltSeries,
+    tlt_file: Path | str | None,
+    add_dose_to_tlt: bool = False,
+    tilt_angles: List[float] | None = None,
 ) -> None:
+    """Writes an IMOD tilt angles file. The angles are ``tilt_angles`` (one per tilt-image)
+    if given, or else the nominal tilt angles of the tilt-images."""
     if tlt_file is None:
         print("write_tlt -> tlt_file is None. Skipping...")
         return
+    if tilt_angles is None:
+        nominal_angles = [ti.nominal_tilt_angle for ti in cets_ts_md.images]
+        if any(angle is None for angle in nominal_angles):
+            print(
+                f"write_tlt -> some tilt-images of {cets_ts_md.id} have no nominal tilt "
+                f"angle. Skipping {tlt_file}..."
+            )
+            return
+        tilt_angles = [float(angle) for angle in nominal_angles]
     try:
         tlt_file = validate_new_file(tlt_file)
-        tilt_angles: list[float]
         dose_list: list[float] = []
         order_list: list[int] = []
-        # Read the required data
-        tilt_angles = [ti.nominal_tilt_angle for ti in cets_ts_md.images]
         if add_dose_to_tlt:
             dose_list = [ti.accumulated_dose for ti in cets_ts_md.images]
             # Check the dose_list as it can be None if not provided by the cets_ts_md
