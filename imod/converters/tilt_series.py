@@ -45,17 +45,20 @@ class ImodTiltSeries:
         spherical_aberration: Optional[float] = None,
         amplitude_contrast: Optional[float] = None,
         dose_rate: Optional[float] = None,
+        tilt_axis_angle: Optional[float] = None,
     ) -> None:
         """:param voltage: acceleration voltage in kV.
         :param spherical_aberration: spherical aberration (Cs) in mm.
         :param amplitude_contrast: amplitude contrast fraction (dimensionless).
         :param dose_rate: dose rate during acquisition in e-/A^2/s.
+        :param tilt_axis_angle: angle of the tilt axis relative to the detector x-axis,
+        in degrees (IMOD's RotationAngle / the TiltAxisAngle of the mdoc).
 
-        The four acquisition constants above are session/microscope values that are
-        not present in the IMOD tilt-series files (.tlt/.xf) parsed here, so they are
+        The acquisition constants above are session/microscope values that are not
+        present in the IMOD tilt-series files (.tlt/.xf) parsed here, so they are
         accepted as optional inputs. ``imod_to_cets`` emits them as an ``Instrument``
         (voltage) and an ``AcquisitionSession`` (spherical aberration, amplitude contrast,
-        dose rate) rather than storing them on the tilt-images.
+        dose rate, tilt axis angle) rather than storing them on the tilt-images.
         """
         self.ts_file_name = validate_file(ts_file_name, "ts_file_name", MRC_MRCS_EXT)
         if type(tilt_angles) is List[float]:
@@ -79,6 +82,7 @@ class ImodTiltSeries:
         self.spherical_aberration = spherical_aberration
         self.amplitude_contrast = amplitude_contrast
         self.dose_rate = dose_rate
+        self.tilt_axis_angle = tilt_axis_angle
 
     def imod_to_cets(
         self,
@@ -106,6 +110,9 @@ class ImodTiltSeries:
         the instrument via ``instrument_id``). The tilt-series references the session via
         ``acquisition_session_id``. Both are returned as the 3rd and 4th elements for
         higher-level assembly onto ``Dataset.instruments`` / ``Dataset.acquisition_sessions``.
+        The tilt axis angle is not in the .tlt/.xf files either, so it is the one given to
+        the constructor; ``cets_to_imod`` does not write it, as no IMOD file written there
+        has a place for it.
 
         :param xf_file: xf alignment file. If not provided, the Identity matrix
         will be used as alignment data.
@@ -157,6 +164,7 @@ class ImodTiltSeries:
             amplitude_contrast=self.amplitude_contrast,
             dose_rate=self.dose_rate,
             spherical_aberration=self.spherical_aberration,
+            tilt_axis_angle=self.tilt_axis_angle,
         )
         ti_list = []
         projection_alignments = []
