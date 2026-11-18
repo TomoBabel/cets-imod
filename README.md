@@ -154,8 +154,7 @@ mypy imod
 ```
 
 `imod/tests/tests_cets_imod.py::CetsImodTsReaderTest::test_ts_imod_to_cets` is a placeholder
-that fails until the tilt-series reader test is written. Example scripts are in
-`imod/scripts/`.
+that fails until the tilt-series reader test is written.
 
 ### Tests
 
@@ -192,10 +191,17 @@ variable) is the tilt-series TS_03, with 40 tilt-images:
 | `cets_files/TS_03_cets_ts_alignment.yaml` | Reference CETS alignment. |
 | `cets_files/TS_03_cets_ctf.yaml` | Reference CETS CTF (one document per tilt-image). |
 
-The reference CETS files are the output of `tilt-series to-cets` with `TS_03.mrcs`,
-`TS_03.tlt`, `TS_03.xf` and `TS_03_only_astigmatism.defocus` and the options of
-`TS_03_parameters.txt` (`--ctf-corrected False` means the flag is not given).
+The reference CETS files hold what `tilt-series to-cets` gives for `TS_03.mrcs`, `TS_03.tlt`,
+`TS_03.xf` and `TS_03_only_astigmatism.defocus` with the options of `TS_03_parameters.txt`
+(`--ctf-corrected False` means the flag is not given). The tests compare them with the
+`tilt_series`, `alignment` and CTF of that command and with the output of `ctf to-cets` for
+`TS_03_only_astigmatism.defocus`.
 
-If the conversion changes on purpose, regenerate the reference CETS files with that command
-and review their diff. Every output of the tests is written to a temporary directory; the
-files in `imod/tests/data` are never modified.
+If the conversion changes on purpose, regenerate them with the Python API, which writes them
+in this layout, and review their diff: `ImodTiltSeries(...).imod_to_cets(...,
+out_yaml_file="TS_03_cets_ts.yaml")` writes `TS_03_cets_ts.yaml` and
+`TS_03_cets_ts_alignment.yaml` (and the instrument and acquisition session files, which are
+not kept), and `ImodCtfSeries(...).imod_to_cets(out_yaml_file="TS_03_cets_ctf.yaml")` the
+CTF. Then make the stack paths of `TS_03_cets_ts.yaml` relative
+(`../tilt_series/TS_03.mrcs`). Every output of the tests is written to a temporary directory;
+the files in `imod/tests/data` are never modified.
