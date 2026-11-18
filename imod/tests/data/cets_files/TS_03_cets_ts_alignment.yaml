@@ -1,0 +1,1163 @@
+---
+tilt_series_id: TS_03
+projection_alignments:
+- transformation_type: projection_alignment
+  name: alignment_tilt_000
+  input: tilt_image_000_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_0
+  tilt_image_id: TS_03_0
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0856836
+      - 0.9963228
+      - 0.0
+    - - -0.9963228
+      - 0.0856836
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - 1256.3424000000002
+    - -2070.306
+- transformation_type: projection_alignment
+  name: alignment_tilt_001
+  input: tilt_image_001_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_1
+  tilt_image_id: TS_03_1
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0853937
+      - 0.9963478
+      - 0.0
+    - - -0.9963478
+      - 0.0853937
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - 994.4100000000001
+    - -515.376
+- transformation_type: projection_alignment
+  name: alignment_tilt_002
+  input: tilt_image_002_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_2
+  tilt_image_id: TS_03_2
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0851399
+      - 0.9963695
+      - 0.0
+    - - -0.9963695
+      - 0.0851399
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - 481.896
+    - 150.2064
+- transformation_type: projection_alignment
+  name: alignment_tilt_003
+  input: tilt_image_003_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_3
+  tilt_image_id: TS_03_3
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0849144
+      - 0.9963888
+      - 0.0
+    - - -0.9963888
+      - 0.0849144
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - 529.1136
+    - 176.28840000000002
+- transformation_type: projection_alignment
+  name: alignment_tilt_004
+  input: tilt_image_004_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_4
+  tilt_image_id: TS_03_4
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0847117
+      - 0.996406
+      - 0.0
+    - - -0.996406
+      - 0.0847117
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - 252.9468
+    - 224.7156
+- transformation_type: projection_alignment
+  name: alignment_tilt_005
+  input: tilt_image_005_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_5
+  tilt_image_id: TS_03_5
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0845278
+      - 0.9964216
+      - 0.0
+    - - -0.9964216
+      - 0.0845278
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - 337.95360000000005
+    - 197.2296
+- transformation_type: projection_alignment
+  name: alignment_tilt_006
+  input: tilt_image_006_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_6
+  tilt_image_id: TS_03_6
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.084359
+      - 0.9964359
+      - 0.0
+    - - -0.9964359
+      - 0.084359
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - 118.0872
+    - 210.4596
+- transformation_type: projection_alignment
+  name: alignment_tilt_007
+  input: tilt_image_007_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_7
+  tilt_image_id: TS_03_7
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0842029
+      - 0.9964491
+      - 0.0
+    - - -0.9964491
+      - 0.0842029
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - 208.5372
+    - 153.4788
+- transformation_type: projection_alignment
+  name: alignment_tilt_008
+  input: tilt_image_008_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_8
+  tilt_image_id: TS_03_8
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0840573
+      - 0.9964615
+      - 0.0
+    - - -0.9964615
+      - 0.0840573
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -7.279200000000001
+    - 162.92880000000002
+- transformation_type: projection_alignment
+  name: alignment_tilt_009
+  input: tilt_image_009_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_9
+  tilt_image_id: TS_03_9
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0839204
+      - 0.996473
+      - 0.0
+    - - -0.996473
+      - 0.0839204
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - 93.54960000000001
+    - 98.06400000000001
+- transformation_type: projection_alignment
+  name: alignment_tilt_010
+  input: tilt_image_010_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_10
+  tilt_image_id: TS_03_10
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0837908
+      - 0.9964838
+      - 0.0
+    - - -0.9964838
+      - 0.0837908
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -150.46560000000002
+    - 132.5376
+- transformation_type: projection_alignment
+  name: alignment_tilt_011
+  input: tilt_image_011_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_11
+  tilt_image_id: TS_03_11
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0836673
+      - 0.9964943
+      - 0.0
+    - - -0.9964943
+      - 0.0836673
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -22.226399999999998
+    - 74.22840000000001
+- transformation_type: projection_alignment
+  name: alignment_tilt_012
+  input: tilt_image_012_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_12
+  tilt_image_id: TS_03_12
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0835487
+      - 0.9965042
+      - 0.0
+    - - -0.9965042
+      - 0.0835487
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -269.31960000000004
+    - 123.1632
+- transformation_type: projection_alignment
+  name: alignment_tilt_013
+  input: tilt_image_013_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_13
+  tilt_image_id: TS_03_13
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0834345
+      - 0.9965137
+      - 0.0
+    - - -0.9965137
+      - 0.0834345
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -128.1204
+    - 102.40559999999999
+- transformation_type: projection_alignment
+  name: alignment_tilt_014
+  input: tilt_image_014_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_14
+  tilt_image_id: TS_03_14
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0833234
+      - 0.9965231
+      - 0.0
+    - - -0.9965231
+      - 0.0833234
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -332.9748
+    - 119.7072
+- transformation_type: projection_alignment
+  name: alignment_tilt_015
+  input: tilt_image_015_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_15
+  tilt_image_id: TS_03_15
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0832148
+      - 0.9965321
+      - 0.0
+    - - -0.9965321
+      - 0.0832148
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -238.39920000000004
+    - 97.2972
+- transformation_type: projection_alignment
+  name: alignment_tilt_016
+  input: tilt_image_016_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_16
+  tilt_image_id: TS_03_16
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0831081
+      - 0.996541
+      - 0.0
+    - - -0.996541
+      - 0.0831081
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -216.1296
+    - 121.53240000000001
+- transformation_type: projection_alignment
+  name: alignment_tilt_017
+  input: tilt_image_017_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_17
+  tilt_image_id: TS_03_17
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0830028
+      - 0.9965498
+      - 0.0
+    - - -0.9965498
+      - 0.0830028
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -234.954
+    - 87.80400000000002
+- transformation_type: projection_alignment
+  name: alignment_tilt_018
+  input: tilt_image_018_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_18
+  tilt_image_id: TS_03_18
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0828981
+      - 0.9965585
+      - 0.0
+    - - -0.9965585
+      - 0.0828981
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -92.71800000000002
+    - 97.61040000000001
+- transformation_type: projection_alignment
+  name: alignment_tilt_019
+  input: tilt_image_019_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_19
+  tilt_image_id: TS_03_19
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0827934
+      - 0.9965672
+      - 0.0
+    - - -0.9965672
+      - 0.0827934
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -203.8392
+    - 115.62480000000001
+- transformation_type: projection_alignment
+  name: alignment_tilt_020
+  input: tilt_image_020_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_20
+  tilt_image_id: TS_03_20
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0826885
+      - 0.9965759
+      - 0.0
+    - - -0.9965759
+      - 0.0826885
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -345.6324
+    - 101.30400000000002
+- transformation_type: projection_alignment
+  name: alignment_tilt_021
+  input: tilt_image_021_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_21
+  tilt_image_id: TS_03_21
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0825823
+      - 0.9965847
+      - 0.0
+    - - -0.9965847
+      - 0.0825823
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -157.75560000000002
+    - 86.1516
+- transformation_type: projection_alignment
+  name: alignment_tilt_022
+  input: tilt_image_022_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_22
+  tilt_image_id: TS_03_22
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0824746
+      - 0.9965937
+      - 0.0
+    - - -0.9965937
+      - 0.0824746
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -247.93560000000002
+    - 33.8796
+- transformation_type: projection_alignment
+  name: alignment_tilt_023
+  input: tilt_image_023_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_23
+  tilt_image_id: TS_03_23
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0823646
+      - 0.9966028
+      - 0.0
+    - - -0.9966028
+      - 0.0823646
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -36.8928
+    - 47.8116
+- transformation_type: projection_alignment
+  name: alignment_tilt_024
+  input: tilt_image_024_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_24
+  tilt_image_id: TS_03_24
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0822516
+      - 0.9966121
+      - 0.0
+    - - -0.9966121
+      - 0.0822516
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -137.26800000000003
+    - 69.768
+- transformation_type: projection_alignment
+  name: alignment_tilt_025
+  input: tilt_image_025_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_25
+  tilt_image_id: TS_03_25
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0821346
+      - 0.9966217
+      - 0.0
+    - - -0.9966217
+      - 0.0821346
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - 30.888
+    - 35.5752
+- transformation_type: projection_alignment
+  name: alignment_tilt_026
+  input: tilt_image_026_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_26
+  tilt_image_id: TS_03_26
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0820131
+      - 0.9966317
+      - 0.0
+    - - -0.9966317
+      - 0.0820131
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -33.858
+    - 42.919200000000004
+- transformation_type: projection_alignment
+  name: alignment_tilt_027
+  input: tilt_image_027_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_27
+  tilt_image_id: TS_03_27
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0818859
+      - 0.9966423
+      - 0.0
+    - - -0.9966423
+      - 0.0818859
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -3.9852000000000003
+    - 34.074
+- transformation_type: projection_alignment
+  name: alignment_tilt_028
+  input: tilt_image_028_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_28
+  tilt_image_id: TS_03_28
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.081752
+      - 0.9966532
+      - 0.0
+    - - -0.9966532
+      - 0.081752
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -155.5524
+    - 57.0672
+- transformation_type: projection_alignment
+  name: alignment_tilt_029
+  input: tilt_image_029_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_29
+  tilt_image_id: TS_03_29
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0816099
+      - 0.9966648
+      - 0.0
+    - - -0.9966648
+      - 0.0816099
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -104.0472
+    - -48.40560000000001
+- transformation_type: projection_alignment
+  name: alignment_tilt_030
+  input: tilt_image_030_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_30
+  tilt_image_id: TS_03_30
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0814579
+      - 0.9966772
+      - 0.0
+    - - -0.9966772
+      - 0.0814579
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -381.2076
+    - 30.24
+- transformation_type: projection_alignment
+  name: alignment_tilt_031
+  input: tilt_image_031_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_31
+  tilt_image_id: TS_03_31
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0812943
+      - 0.9966907
+      - 0.0
+    - - -0.9966907
+      - 0.0812943
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -362.2644
+    - 1.6308
+- transformation_type: projection_alignment
+  name: alignment_tilt_032
+  input: tilt_image_032_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_32
+  tilt_image_id: TS_03_32
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0811165
+      - 0.9967051
+      - 0.0
+    - - -0.9967051
+      - 0.0811165
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -629.9856000000001
+    - 62.8668
+- transformation_type: projection_alignment
+  name: alignment_tilt_033
+  input: tilt_image_033_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_33
+  tilt_image_id: TS_03_33
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0809212
+      - 0.996721
+      - 0.0
+    - - -0.996721
+      - 0.0809212
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -548.9964
+    - -66.096
+- transformation_type: projection_alignment
+  name: alignment_tilt_034
+  input: tilt_image_034_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_34
+  tilt_image_id: TS_03_34
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.080705
+      - 0.9967386
+      - 0.0
+    - - -0.9967386
+      - 0.080705
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -809.7516
+    - 64.962
+- transformation_type: projection_alignment
+  name: alignment_tilt_035
+  input: tilt_image_035_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_35
+  tilt_image_id: TS_03_35
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0804625
+      - 0.9967581
+      - 0.0
+    - - -0.9967581
+      - 0.0804625
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -728.9892
+    - -95.75280000000001
+- transformation_type: projection_alignment
+  name: alignment_tilt_036
+  input: tilt_image_036_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_36
+  tilt_image_id: TS_03_36
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0801873
+      - 0.9967804
+      - 0.0
+    - - -0.9967804
+      - 0.0801873
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -978.4584000000001
+    - 14.5692
+- transformation_type: projection_alignment
+  name: alignment_tilt_037
+  input: tilt_image_037_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_37
+  tilt_image_id: TS_03_37
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.07987
+      - 0.9968057
+      - 0.0
+    - - -0.9968057
+      - 0.07987
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -919.2312000000001
+    - -148.5
+- transformation_type: projection_alignment
+  name: alignment_tilt_038
+  input: tilt_image_038_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_38
+  tilt_image_id: TS_03_38
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0794984
+      - 0.9968355
+      - 0.0
+    - - -0.9968355
+      - 0.0794984
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -1226.826
+    - -11.5452
+- transformation_type: projection_alignment
+  name: alignment_tilt_039
+  input: tilt_image_039_physical
+  output: tilt_series_TS_03_physical
+  id: TS_03_align_39
+  tilt_image_id: TS_03_39
+  refined_tilt_angle: null
+  sequence:
+  - transformation_type: affine
+    name: null
+    input: null
+    output: null
+    affine:
+    - - 0.0790546
+      - 0.9968708
+      - 0.0
+    - - -0.9968708
+      - 0.0790546
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+  - transformation_type: translation
+    name: null
+    input: null
+    output: null
+    translation:
+    - -1109.0952000000002
+    - -152.96040000000002

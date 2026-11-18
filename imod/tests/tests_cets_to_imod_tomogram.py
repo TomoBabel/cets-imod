@@ -78,9 +78,22 @@ class CetsToImodTomogramTest(TestCase):
             self.assertAlmostEqual(float(mrc.voxel_size.x), VOXEL_SIZE, places=5)
 
     def test_header_without_voxel_size(self) -> None:
-        """The 1.0 that imod_to_cets sets for headers without voxel size is not written"""
+        """Without voxel size in the header it must be given: it is not assumed."""
         tomo_file = write_mrc(self.test_dir / "no_apix.mrc", voxel_size=0.0)
-        tomo = ImodTomogram(tomo_file).imod_to_cets()
+        with self.assertRaisesRegex(ValueError, "pixel size"):
+            ImodTomogram(tomo_file).imod_to_cets()
+        tomo = ImodTomogram(tomo_file).imod_to_cets(pixel_size=VOXEL_SIZE)
+        # The header does not have the voxel size of the CETS tomogram: copied and fixed
+        out = ImodTomogram.cets_to_imod(tomo, self.out_dir)
+        self.assertFalse(out.is_symlink())
+        with mrcfile.open(out, header_only=True) as mrc:
+            self.assertAlmostEqual(float(mrc.voxel_size.x), VOXEL_SIZE, places=5)
+
+    def test_placeholder_voxel_size_is_not_written(self) -> None:
+        """Yaml files written before the voxel size was required have 1.0 for headers
+        without it: that placeholder is not written in the header."""
+        tomo_file = write_mrc(self.test_dir / "no_apix.mrc", voxel_size=0.0)
+        tomo = ImodTomogram(tomo_file).imod_to_cets(pixel_size=1.0)
         out = ImodTomogram.cets_to_imod(tomo, self.out_dir)
         self.assertTrue(out.is_symlink())
 

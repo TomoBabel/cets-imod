@@ -14,6 +14,7 @@ from imod.utils.utils import (
     validate_file,
     gen_coordinate_systems,
     gen_array_to_physical,
+    resolve_pixel_size,
 )
 
 
@@ -27,6 +28,7 @@ class ImodTomogram:
         odd_file_name: Path | str | None = None,
         ctf_corrected: bool = False,
         out_yaml_file: str | Path | None = None,
+        pixel_size: float | None = None,
     ) -> Tomogram:
         """Converts an IMOD tomogran into CETS metadata.
 
@@ -39,6 +41,10 @@ class ImodTomogram:
         :param ctf_corrected: xFlag to indicate if the tomogram was reconstructed
         from a tilt-series with the ctf corrected.
         :type ctf_corrected: bool, optional
+
+        :param pixel_size: voxel size of the tomogram (Å). Defaults to the one of its header;
+        if the header does not have it either, a ValueError is raised.
+        :type pixel_size: float, optional
 
         :param out_yaml_file: name of the yaml file in which the tomogram
         metadata will be written.
@@ -54,7 +60,9 @@ class ImodTomogram:
         tomo_id = self.file_name.stem
         # Every image (volume) gets an array (voxel, unitless) and a physical (Å) coordinate
         # system plus exactly one canonical array_to_physical scale (the voxel size), per spec.
-        voxel_size = image_info_obj.apix_x if image_info_obj.apix_x else 1.0
+        voxel_size = resolve_pixel_size(
+            pixel_size, image_info_obj.apix_x, str(self.file_name)
+        )
         array_cs, physical_cs = gen_coordinate_systems(tomo_id, ndim=3)
         array_to_physical = gen_array_to_physical(
             voxel_size, array_cs.name, physical_cs.name, ndim=3

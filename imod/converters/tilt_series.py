@@ -17,7 +17,8 @@ from cets_data_model.models.models import (
     AcquisitionSession,
 )
 from cets_data_model.utils.image_utils import get_mrc_info
-from imod.contants import MRC_MRCS_EXT
+from cets_data_model.utils.yaml_io import load_cets_object
+from imod.contants import ALIGNMENT_KEY, MRC_MRCS_EXT, TILT_SERIES_KEY
 from imod.utils.utils import (
     validate_file,
     validate_tilt_angle_list,
@@ -28,10 +29,10 @@ from imod.utils.utils import (
     write_tlt,
     write_xf,
     validate_new_file,
-    load_md_list_yaml,
     gen_coordinate_systems,
     gen_array_to_physical,
     get_image_pixel_size,
+    resolve_pixel_size,
 )
 
 
@@ -122,7 +123,10 @@ class ImodTiltSeries:
         odd_stack_file_name: str | Path | None = None,
         ctf_corrected: bool = False,
         out_yaml_file: str | Path | None = None,
-    ) -> Tuple[TiltSeries, Alignment, Instrument, AcquisitionSession]:
+        pixel_size: float | None = None,
+    ) -> Tuple[
+        TiltSeries, Alignment, Optional[Instrument], Optional[AcquisitionSession]
+    ]:
         """Converts an IMOD tilt-series into CETS metadata.
 
         In the current data model the per-projection alignment is NOT stored inside each
@@ -141,6 +145,11 @@ class ImodTiltSeries:
         the instrument via ``instrument_id``). The tilt-series references the session via
         ``acquisition_session_id``. Both are returned as the 3rd and 4th elements for
         higher-level assembly onto ``Dataset.instruments`` / ``Dataset.acquisition_sessions``.
+        IMOD files do not record any of these values, so they are only emitted when given:
+        the ``Instrument`` is None if the voltage is not given, and the
+        ``AcquisitionSession`` is None (and the tilt-series has no
+        ``acquisition_session_id``) if neither a session value nor the voltage is given.
+        Objects with every field empty would claim an acquisition nothing is known about.
         The tilt axis angle is not in the .tlt/.xf files either, so it is the one given to
         the constructor; ``cets_to_imod`` does not write it, as no IMOD file written there
         has a place for it.
@@ -158,6 +167,10 @@ class ImodTiltSeries:
         :param ctf_corrected: xFlag to indicate if the tomogram was reconstructed
         from a tilt-series with the ctf corrected.
         :type ctf_corrected: bool, optional
+
+        :param pixel_size: pixel size of the stack (Å). Defaults to the one of its header;
+        if the header does not have it either, a ValueError is raised.
+        :type pixel_size: float, optional
 
         :param out_yaml_file: name of the yaml file in which the tilt-series
         metadata will be written.
@@ -192,22 +205,39 @@ class ImodTiltSeries:
         ts_id = self.ts_file_name.stem
         # Merged (tilt-series) pixel size in Å; backs the array_to_physical scale and the
         # conversion of alignment shifts to Å.
-        pixel_size = img_info.apix_x if img_info.apix_x else 1.0
+        pixel_size = resolve_pixel_size(
+            pixel_size, img_info.apix_x, str(self.ts_file_name)
+        )
         # Dataset-level acquisition metadata (constant across the tilt-series): the
         # microscope hardware (Instrument) and the session parameters (AcquisitionSession),
         # linked to the instrument via instrument_id. IDs are derived from the tilt-series id
         # to stay unique when several tilt-series are assembled into a single Dataset.
-        instrument = Instrument(
-            id=f"{ts_id}_instrument",
-            voltage=self.voltage,
+        # Only emitted when something is known about them (see the docstring). The tilt-series
+        # reaches the instrument through its session, so a session is also emitted when only
+        # the voltage is given.
+        instrument = (
+            Instrument(id=f"{ts_id}_instrument", voltage=self.voltage)
+            if self.voltage is not None
+            else None
         )
-        acquisition_session = AcquisitionSession(
-            id=f"{ts_id}_session",
-            instrument_id=instrument.id,
-            amplitude_contrast=self.amplitude_contrast,
-            dose_rate=self.dose_rate,
-            spherical_aberration=self.spherical_aberration,
-            tilt_axis_angle=self.tilt_axis_angle,
+        session_values = (
+            self.amplitude_contrast,
+            self.dose_rate,
+            self.spherical_aberration,
+            self.tilt_axis_angle,
+        )
+        acquisition_session = (
+            AcquisitionSession(
+                id=f"{ts_id}_session",
+                instrument_id=instrument.id if instrument else None,
+                amplitude_contrast=self.amplitude_contrast,
+                dose_rate=self.dose_rate,
+                spherical_aberration=self.spherical_aberration,
+                tilt_axis_angle=self.tilt_axis_angle,
+            )
+            if instrument is not None
+            or any(value is not None for value in session_values)
+            else None
         )
         ti_list = []
         projection_alignments = []
@@ -270,8 +300,10 @@ class ImodTiltSeries:
             odd_path=odd_stack_file_name,
             ctf_corrected=ctf_corrected,
             images=ti_list,
-            # Link the tilt-series to its acquisition session.
-            acquisition_session_id=acquisition_session.id,
+            # Link the tilt-series to its acquisition session, if any.
+            acquisition_session_id=(
+                acquisition_session.id if acquisition_session else None
+            ),
         )
         # The tilt-series alignment (one ProjectionAlignment per tilt-image). It is meant to be
         # placed under Region.alignments together with this tilt-series, and links the whole set
@@ -283,24 +315,29 @@ class ImodTiltSeries:
         self._write_ts_yaml(ts, out_yaml_file)
         if out_yaml_file is not None:
             self._write_ts_yaml(alignment, self._alignment_yaml_path(out_yaml_file))
-            self._write_ts_yaml(instrument, self._instrument_yaml_path(out_yaml_file))
-            self._write_ts_yaml(
-                acquisition_session, self._session_yaml_path(out_yaml_file)
-            )
+            if instrument is not None:
+                self._write_ts_yaml(
+                    instrument, self._instrument_yaml_path(out_yaml_file)
+                )
+            if acquisition_session is not None:
+                self._write_ts_yaml(
+                    acquisition_session, self._session_yaml_path(out_yaml_file)
+                )
         return ts, alignment, instrument, acquisition_session
 
     @staticmethod
     def cets_to_imod(
         cets_ts: TiltSeries | Path | str,
         tlt_file: str | Path,
-        alignment: Optional[Alignment] = None,
+        alignment: Alignment | Path | str | None = None,
         add_dose_to_tlt: bool = True,
         xf_file: str | Path | None = None,
         rawtlt_file: str | Path | None = None,
     ):
         """Converts CETS Tilt-series metadata into IMOD files.
 
-        :param cets_ts: CETS tilt-series metadata or a yaml file written from it.
+        :param cets_ts: CETS tilt-series metadata or a yaml file containing it (written by
+        imod_to_cets or by the command line).
         :type cets_ts: TiltSeries or pathlib.Path or str
 
         :param tlt_file: output tlt file to be generated, with the tilt angles IMOD uses to
@@ -311,7 +348,8 @@ class ImodTiltSeries:
         :param alignment: CETS Alignment holding one ProjectionAlignment per tilt-image
         (index-aligned with ``cets_ts.images``). Required to write the xf file, since the
         alignment is no longer stored inside the tilt-image ``coordinate_transformations``.
-        :type alignment: Alignment, optional, Defaults to None
+        It can also be a yaml file containing it.
+        :type alignment: Alignment or pathlib.Path or str, optional, Defaults to None
 
         :param add_dose_to_tlt: used to indicate if the generated tlt file should also
         contain a second column with the dose.
@@ -323,8 +361,10 @@ class ImodTiltSeries:
         :param rawtlt_file: output file with the nominal tilt angles (IMOD's .rawtlt).
         :type: pathlib.Path or str, optional, Defaults to None
         """
-        if type(cets_ts) is not TiltSeries:
-            cets_ts = load_md_list_yaml(cets_ts, TiltSeries)
+        if not isinstance(cets_ts, TiltSeries):
+            cets_ts = load_cets_object(cets_ts, TILT_SERIES_KEY, TiltSeries)
+        if alignment is not None and not isinstance(alignment, Alignment):
+            alignment = load_cets_object(alignment, ALIGNMENT_KEY, Alignment)
         # Write the tlt file: refined angles if the alignment has them, else nominal ones
         refined_angles = ImodTiltSeries._get_refined_tilt_angles(cets_ts, alignment)
         write_tlt(
@@ -456,11 +496,10 @@ class ImodTiltSeries:
     @staticmethod
     def _get_translation_values(
         translation_matrix: np.ndarray, pix_size: float = 1.0
-    ) -> Vector3D:
-        """Gets the shifts in X and Y directions, in angstroms."""
-        translation_matrix *= pix_size  # convert to angstroms
-        translation_vector: Vector3D = translation_matrix.tolist()
-        return translation_vector
+    ) -> List[float]:
+        """Gets the shifts in X and Y directions, in angstroms: a 2D vector, as the tilt-image
+        frame is 2D (the same as cets-scipion)."""
+        return [float(shift) * pix_size for shift in translation_matrix[:2]]
 
     @staticmethod
     def _write_ts_yaml(

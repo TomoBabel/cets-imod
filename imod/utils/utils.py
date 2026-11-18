@@ -22,6 +22,27 @@ from cets_data_model.models.models import (
 from imod.contants import MRC_MRCS_EXT
 
 
+def resolve_pixel_size(
+    pixel_size: float | None, header_pixel_size: float | None, what: str
+) -> float:
+    """Pixel/voxel size (Å) of an image: the one given or, if not given, the one of its file
+    header.
+
+    :param what: the image, for the error message.
+    :raises ValueError: if neither is known, as any value in Å would be wrong.
+    """
+    if pixel_size is not None:
+        if pixel_size <= 0:
+            raise ValueError(f"The pixel size must be positive. Got: {pixel_size}")
+        return float(pixel_size)
+    if header_pixel_size:
+        return float(header_pixel_size)
+    raise ValueError(
+        f"The pixel size of {what} is unknown: its header does not have it, so it must "
+        f"be provided."
+    )
+
+
 def get_image_pixel_size(image: TiltImage) -> float | None:
     """Returns the (isotropic) pixel size in Å from an image's canonical ``array_to_physical``
     Scale transformation (falling back to any Scale), or None if none is present."""
@@ -311,12 +332,24 @@ def write_xf(
     CETS stores the per-projection alignment shifts in Å (physical frame); native IMOD .xf
     files store them in pixels, so each shift is divided by the tilt-image pixel size.
     ``pixel_sizes`` is the per-projection pixel size in Å, index-aligned with
-    ``cets_alignment.projection_alignments``; when it is missing/None the shift is written
-    unchanged. Rows use IMOD's native ``%12.7f%12.7f%12.7f%12.7f%12.3f%12.3f`` layout.
+    ``cets_alignment.projection_alignments``; if any is missing, a ValueError is raised
+    (the shifts cannot be expressed in pixels). Rows use IMOD's native
+    ``%12.7f%12.7f%12.7f%12.7f%12.3f%12.3f`` layout.
     """
     if xf_file is None:
         print("write_xf -> xf_file is None. Skipping...")
         return
+    n_projections = len(cets_alignment.projection_alignments or [])
+    if (
+        not pixel_sizes
+        or len(pixel_sizes) < n_projections
+        or any(not pixel_sizes[i] for i in range(n_projections))
+    ):
+        raise ValueError(
+            f"write_xf -> the pixel size of every tilt-image is needed to convert the "
+            f"alignment shifts from Å to pixels, but some are unknown. {xf_file} was not "
+            f"written."
+        )
     try:
         xf_file = validate_new_file(xf_file)
         rows = []
@@ -335,10 +368,7 @@ def write_xf(
             )
             rot = np.array(rotation).flatten()
             # Convert the shift from Å (CETS) back to pixels (IMOD) via the image pixel size.
-            pixel_size = (
-                pixel_sizes[i] if pixel_sizes and i < len(pixel_sizes) else None
-            )
-            pixel_size = pixel_size or 1.0
+            pixel_size = pixel_sizes[i]
             sx = translation[0] / pixel_size
             sy = translation[1] / pixel_size
             rows.append(
@@ -520,6 +550,8 @@ def export_mrc(
         return dst
     shutil.copyfile(src, dst)
     if fix_header:
-        with mrcfile.open(dst, mode="r+", header_only=True, permissive=True) as mrc:
+        # Memory-mapped, so only the header is rewritten: a file opened with
+        # header_only=True in "r+" mode is truncated to its header when closed.
+        with mrcfile.mmap(dst, mode="r+", permissive=True) as mrc:
             mrc.voxel_size = voxel_size
     return dst

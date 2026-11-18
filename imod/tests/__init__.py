@@ -8,13 +8,15 @@ from typing import Final, List
 
 # Test root
 TEST_DATA_ROOT: Final[Path] = Path(
-    os.getenv("TEST_DATA_ROOT", Path(__file__).parent / "test_data")
+    os.getenv("TEST_DATA_ROOT", Path(__file__).parent / "data")
 )
 # Subfolders under TEST_DATA_ROOT
 CTF_DATA_DIR: Final[Path] = Path("imod_defocus_files")
 TS_DATA_DIR: Final[Path] = Path("tilt_series")
 ALI_DATA_DIR: Final[Path] = Path("alignment_files")
 TOMOGRAMS_DIR: Final[Path] = Path("tomograms")
+# Reference CETS files, written by the converters from the files above
+CETS_DATA_DIR: Final[Path] = Path("cets_files")
 
 # Dataset-wide metadata
 N_IMGS_TS03: Final[int] = 40
@@ -77,8 +79,27 @@ class ImodTestDataFiles(Enum):
     )
     ts_03_mrcs = Fixture(relpath=TS_DATA_DIR / "TS_03.mrcs")
     ts_03_tlt = Fixture(relpath=TS_DATA_DIR / "TS_03.tlt")
+    ts_03_rawtlt = Fixture(
+        relpath=TS_DATA_DIR / "03.rawtlt", description="Nominal tilt angles only"
+    )
     ts_03_xf = Fixture(relpath=ALI_DATA_DIR / "TS_03.xf")
     ts_03_tomogram = Fixture(relpath=TOMOGRAMS_DIR / "TS_03.mrc")
+    ts_03_parameters = Fixture(
+        relpath=Path("TS_03_parameters.txt"),
+        description="cets-imod tilt-series to-cets options of the acquisition of TS_03",
+    )
+    ts_03_cets_ts = Fixture(
+        relpath=CETS_DATA_DIR / "TS_03_cets_ts.yaml",
+        description="Reference CETS tilt-series (TS_03.tlt, .xf, only_astigmatism CTF)",
+    )
+    ts_03_cets_alignment = Fixture(
+        relpath=CETS_DATA_DIR / "TS_03_cets_ts_alignment.yaml",
+        description="Reference CETS alignment of TS_03.xf",
+    )
+    ts_03_cets_ctf = Fixture(
+        relpath=CETS_DATA_DIR / "TS_03_cets_ctf.yaml",
+        description="Reference CETS CTF of TS_03_only_astigmatism.defocus",
+    )
 
     @property
     def relpath(self) -> Path:

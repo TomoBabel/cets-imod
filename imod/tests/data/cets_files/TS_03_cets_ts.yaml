@@ -1,0 +1,1609 @@
+---
+id: TS_03
+path: ../tilt_series/TS_03.mrcs
+ctf_corrected: false
+even_path: null
+odd_path: null
+images:
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_000_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_000_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_000_array
+    output: tilt_image_000_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: -57.0
+  accumulated_dose: 117.0
+  ctf_metadata:
+    defocus_u: 16516.0
+    defocus_v: 12067.0
+    defocus_angle: 31.76
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 0
+  id: TS_03_0
+  movie_stack_id: TS_03
+  acquisition_order: 39
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_001_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_001_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_001_array
+    output: tilt_image_001_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: -54.0
+  accumulated_dose: 108.0
+  ctf_metadata:
+    defocus_u: 15638.0
+    defocus_v: 11162.0
+    defocus_angle: 31.7
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 1
+  id: TS_03_1
+  movie_stack_id: TS_03
+  acquisition_order: 36
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_002_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_002_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_002_array
+    output: tilt_image_002_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: -51.0
+  accumulated_dose: 105.0
+  ctf_metadata:
+    defocus_u: 15451.0
+    defocus_v: 10660.0
+    defocus_angle: 35.14
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 2
+  id: TS_03_2
+  movie_stack_id: TS_03
+  acquisition_order: 35
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_003_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_003_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_003_array
+    output: tilt_image_003_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: -48.0
+  accumulated_dose: 96.0
+  ctf_metadata:
+    defocus_u: 15155.0
+    defocus_v: 11033.0
+    defocus_angle: 39.01
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 3
+  id: TS_03_3
+  movie_stack_id: TS_03
+  acquisition_order: 32
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_004_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_004_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_004_array
+    output: tilt_image_004_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: -45.0
+  accumulated_dose: 93.0
+  ctf_metadata:
+    defocus_u: 15076.0
+    defocus_v: 11777.0
+    defocus_angle: 43.66
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 4
+  id: TS_03_4
+  movie_stack_id: TS_03
+  acquisition_order: 31
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_005_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_005_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_005_array
+    output: tilt_image_005_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: -42.0
+  accumulated_dose: 84.0
+  ctf_metadata:
+    defocus_u: 14913.0
+    defocus_v: 12510.0
+    defocus_angle: 46.35
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 5
+  id: TS_03_5
+  movie_stack_id: TS_03
+  acquisition_order: 28
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_006_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_006_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_006_array
+    output: tilt_image_006_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: -39.0
+  accumulated_dose: 81.0
+  ctf_metadata:
+    defocus_u: 14797.0
+    defocus_v: 13004.0
+    defocus_angle: 49.12
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 6
+  id: TS_03_6
+  movie_stack_id: TS_03
+  acquisition_order: 27
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_007_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_007_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_007_array
+    output: tilt_image_007_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: -36.0
+  accumulated_dose: 72.0
+  ctf_metadata:
+    defocus_u: 14588.0
+    defocus_v: 13136.0
+    defocus_angle: 53.07
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 7
+  id: TS_03_7
+  movie_stack_id: TS_03
+  acquisition_order: 24
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_008_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_008_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_008_array
+    output: tilt_image_008_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: -33.0
+  accumulated_dose: 69.0
+  ctf_metadata:
+    defocus_u: 14669.0
+    defocus_v: 13438.0
+    defocus_angle: 51.45
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 8
+  id: TS_03_8
+  movie_stack_id: TS_03
+  acquisition_order: 23
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_009_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_009_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_009_array
+    output: tilt_image_009_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: -30.0
+  accumulated_dose: 60.0
+  ctf_metadata:
+    defocus_u: 14846.0
+    defocus_v: 13606.0
+    defocus_angle: 51.23
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 9
+  id: TS_03_9
+  movie_stack_id: TS_03
+  acquisition_order: 20
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_010_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_010_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_010_array
+    output: tilt_image_010_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: -27.0
+  accumulated_dose: 57.0
+  ctf_metadata:
+    defocus_u: 14859.0
+    defocus_v: 13749.0
+    defocus_angle: 48.59
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 10
+  id: TS_03_10
+  movie_stack_id: TS_03
+  acquisition_order: 19
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_011_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_011_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_011_array
+    output: tilt_image_011_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: -24.0
+  accumulated_dose: 48.0
+  ctf_metadata:
+    defocus_u: 14755.0
+    defocus_v: 13831.0
+    defocus_angle: 48.81
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 11
+  id: TS_03_11
+  movie_stack_id: TS_03
+  acquisition_order: 16
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_012_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_012_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_012_array
+    output: tilt_image_012_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: -21.0
+  accumulated_dose: 45.0
+  ctf_metadata:
+    defocus_u: 14731.0
+    defocus_v: 14077.0
+    defocus_angle: 48.56
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 12
+  id: TS_03_12
+  movie_stack_id: TS_03
+  acquisition_order: 15
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_013_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_013_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_013_array
+    output: tilt_image_013_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: -18.0
+  accumulated_dose: 36.0
+  ctf_metadata:
+    defocus_u: 14687.0
+    defocus_v: 14156.0
+    defocus_angle: 47.83
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 13
+  id: TS_03_13
+  movie_stack_id: TS_03
+  acquisition_order: 12
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_014_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_014_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_014_array
+    output: tilt_image_014_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: -15.0
+  accumulated_dose: 33.0
+  ctf_metadata:
+    defocus_u: 14682.0
+    defocus_v: 14195.0
+    defocus_angle: 49.03
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 14
+  id: TS_03_14
+  movie_stack_id: TS_03
+  acquisition_order: 11
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_015_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_015_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_015_array
+    output: tilt_image_015_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: -12.0
+  accumulated_dose: 24.0
+  ctf_metadata:
+    defocus_u: 14670.0
+    defocus_v: 14135.0
+    defocus_angle: 50.71
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 15
+  id: TS_03_15
+  movie_stack_id: TS_03
+  acquisition_order: 8
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_016_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_016_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_016_array
+    output: tilt_image_016_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: -9.0
+  accumulated_dose: 21.0
+  ctf_metadata:
+    defocus_u: 14739.0
+    defocus_v: 14244.0
+    defocus_angle: 50.44
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 16
+  id: TS_03_16
+  movie_stack_id: TS_03
+  acquisition_order: 7
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_017_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_017_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_017_array
+    output: tilt_image_017_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: -6.0
+  accumulated_dose: 12.0
+  ctf_metadata:
+    defocus_u: 14669.0
+    defocus_v: 14194.0
+    defocus_angle: 50.21
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 17
+  id: TS_03_17
+  movie_stack_id: TS_03
+  acquisition_order: 4
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_018_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_018_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_018_array
+    output: tilt_image_018_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: -3.0
+  accumulated_dose: 9.0
+  ctf_metadata:
+    defocus_u: 14697.0
+    defocus_v: 14347.0
+    defocus_angle: 50.56
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 18
+  id: TS_03_18
+  movie_stack_id: TS_03
+  acquisition_order: 3
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_019_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_019_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_019_array
+    output: tilt_image_019_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: 0.0
+  accumulated_dose: 3.0
+  ctf_metadata:
+    defocus_u: 14678.0
+    defocus_v: 14358.0
+    defocus_angle: 50.36
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 19
+  id: TS_03_19
+  movie_stack_id: TS_03
+  acquisition_order: 1
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_020_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_020_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_020_array
+    output: tilt_image_020_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: 3.0
+  accumulated_dose: 6.0
+  ctf_metadata:
+    defocus_u: 14663.0
+    defocus_v: 14432.0
+    defocus_angle: 44.16
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 20
+  id: TS_03_20
+  movie_stack_id: TS_03
+  acquisition_order: 2
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_021_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_021_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_021_array
+    output: tilt_image_021_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: 6.0
+  accumulated_dose: 15.0
+  ctf_metadata:
+    defocus_u: 14585.0
+    defocus_v: 14319.0
+    defocus_angle: 46.59
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 21
+  id: TS_03_21
+  movie_stack_id: TS_03
+  acquisition_order: 5
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_022_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_022_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_022_array
+    output: tilt_image_022_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: 9.0
+  accumulated_dose: 18.0
+  ctf_metadata:
+    defocus_u: 14632.0
+    defocus_v: 14386.0
+    defocus_angle: 47.32
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 22
+  id: TS_03_22
+  movie_stack_id: TS_03
+  acquisition_order: 6
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_023_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_023_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_023_array
+    output: tilt_image_023_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: 12.0
+  accumulated_dose: 27.0
+  ctf_metadata:
+    defocus_u: 14652.0
+    defocus_v: 14358.0
+    defocus_angle: 52.28
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 23
+  id: TS_03_23
+  movie_stack_id: TS_03
+  acquisition_order: 9
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_024_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_024_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_024_array
+    output: tilt_image_024_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: 15.0
+  accumulated_dose: 30.0
+  ctf_metadata:
+    defocus_u: 14573.0
+    defocus_v: 14296.0
+    defocus_angle: 43.87
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 24
+  id: TS_03_24
+  movie_stack_id: TS_03
+  acquisition_order: 10
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_025_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_025_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_025_array
+    output: tilt_image_025_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: 18.0
+  accumulated_dose: 39.0
+  ctf_metadata:
+    defocus_u: 14713.0
+    defocus_v: 14359.0
+    defocus_angle: 46.1
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 25
+  id: TS_03_25
+  movie_stack_id: TS_03
+  acquisition_order: 13
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_026_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_026_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_026_array
+    output: tilt_image_026_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: 21.0
+  accumulated_dose: 42.0
+  ctf_metadata:
+    defocus_u: 14711.0
+    defocus_v: 14412.0
+    defocus_angle: 47.68
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 26
+  id: TS_03_26
+  movie_stack_id: TS_03
+  acquisition_order: 14
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_027_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_027_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_027_array
+    output: tilt_image_027_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: 24.0
+  accumulated_dose: 51.0
+  ctf_metadata:
+    defocus_u: 14705.0
+    defocus_v: 14417.0
+    defocus_angle: 52.96
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 27
+  id: TS_03_27
+  movie_stack_id: TS_03
+  acquisition_order: 17
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_028_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_028_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_028_array
+    output: tilt_image_028_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: 27.0
+  accumulated_dose: 54.0
+  ctf_metadata:
+    defocus_u: 14654.0
+    defocus_v: 14469.0
+    defocus_angle: 36.24
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 28
+  id: TS_03_28
+  movie_stack_id: TS_03
+  acquisition_order: 18
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_029_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_029_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_029_array
+    output: tilt_image_029_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: 30.0
+  accumulated_dose: 63.0
+  ctf_metadata:
+    defocus_u: 14680.0
+    defocus_v: 14459.0
+    defocus_angle: 43.73
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 29
+  id: TS_03_29
+  movie_stack_id: TS_03
+  acquisition_order: 21
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_030_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_030_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_030_array
+    output: tilt_image_030_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: 33.0
+  accumulated_dose: 66.0
+  ctf_metadata:
+    defocus_u: 14794.0
+    defocus_v: 14538.0
+    defocus_angle: 40.34
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 30
+  id: TS_03_30
+  movie_stack_id: TS_03
+  acquisition_order: 22
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_031_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_031_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_031_array
+    output: tilt_image_031_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: 36.0
+  accumulated_dose: 75.0
+  ctf_metadata:
+    defocus_u: 14638.0
+    defocus_v: 14392.0
+    defocus_angle: 51.13
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 31
+  id: TS_03_31
+  movie_stack_id: TS_03
+  acquisition_order: 25
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_032_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_032_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_032_array
+    output: tilt_image_032_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: 39.0
+  accumulated_dose: 78.0
+  ctf_metadata:
+    defocus_u: 14482.0
+    defocus_v: 14328.0
+    defocus_angle: 28.33
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 32
+  id: TS_03_32
+  movie_stack_id: TS_03
+  acquisition_order: 26
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_033_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_033_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_033_array
+    output: tilt_image_033_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: 42.0
+  accumulated_dose: 87.0
+  ctf_metadata:
+    defocus_u: 14545.0
+    defocus_v: 14432.0
+    defocus_angle: 30.4
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 33
+  id: TS_03_33
+  movie_stack_id: TS_03
+  acquisition_order: 29
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_034_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_034_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_034_array
+    output: tilt_image_034_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: 45.0
+  accumulated_dose: 90.0
+  ctf_metadata:
+    defocus_u: 14569.0
+    defocus_v: 14413.0
+    defocus_angle: 60.87
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 34
+  id: TS_03_34
+  movie_stack_id: TS_03
+  acquisition_order: 30
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_035_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_035_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_035_array
+    output: tilt_image_035_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: 48.0
+  accumulated_dose: 99.0
+  ctf_metadata:
+    defocus_u: 14590.0
+    defocus_v: 14299.0
+    defocus_angle: 67.36
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 35
+  id: TS_03_35
+  movie_stack_id: TS_03
+  acquisition_order: 33
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_036_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_036_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_036_array
+    output: tilt_image_036_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: 51.0
+  accumulated_dose: 102.0
+  ctf_metadata:
+    defocus_u: 14653.0
+    defocus_v: 14329.0
+    defocus_angle: 67.8
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 36
+  id: TS_03_36
+  movie_stack_id: TS_03
+  acquisition_order: 34
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_037_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_037_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_037_array
+    output: tilt_image_037_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: 54.0
+  accumulated_dose: 111.0
+  ctf_metadata:
+    defocus_u: 14772.0
+    defocus_v: 14415.0
+    defocus_angle: 58.05
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 37
+  id: TS_03_37
+  movie_stack_id: TS_03
+  acquisition_order: 37
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_038_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_038_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_038_array
+    output: tilt_image_038_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: 57.0
+  accumulated_dose: 114.0
+  ctf_metadata:
+    defocus_u: 14676.0
+    defocus_v: 14232.0
+    defocus_angle: 49.13
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 38
+  id: TS_03_38
+  movie_stack_id: TS_03
+  acquisition_order: 38
+- width: 464
+  height: 480
+  coordinate_systems:
+  - name: tilt_image_039_array
+    axes:
+    - name: x
+      axis_unit: pixel
+      axis_type: array
+    - name: y
+      axis_unit: pixel
+      axis_type: array
+  - name: tilt_image_039_physical
+    axes:
+    - name: x
+      axis_unit: angstrom
+      axis_type: space
+    - name: y
+      axis_unit: angstrom
+      axis_type: space
+  coordinate_transformations:
+  - transformation_type: scale
+    name: array_to_physical
+    input: tilt_image_039_array
+    output: tilt_image_039_physical
+    scale:
+    - 10.8
+    - 10.8
+  nominal_tilt_angle: 60.0
+  accumulated_dose: 123.0
+  ctf_metadata:
+    defocus_u: 14609.0
+    defocus_v: 14171.0
+    defocus_angle: 48.4
+    phase_shift: 0.0
+  exposure_time: null
+  path: ../tilt_series/TS_03.mrcs
+  section: 39
+  id: TS_03_39
+  movie_stack_id: TS_03
+  acquisition_order: 40
+movie_stack_series_id: TS_03
+acquisition_session_id: TS_03_session

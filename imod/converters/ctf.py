@@ -4,7 +4,9 @@ from pathlib import Path
 from typing import List, Dict
 import yaml
 from cets_data_model.models.models import CTFMetadata
+from cets_data_model.utils.yaml_io import load_cets_objects
 from imod.contants import (
+    CTF_KEY,
     MRC_MRCS_EXT,
     DEFOCUS_FLAG_ASTIGMATISM,
     DEFOCUS_FLAG_ANGLE_IN_RADIANS,
@@ -16,7 +18,6 @@ from imod.contants import (
 from imod.utils.utils import (
     get_ts_no_imgs,
     standarize_defocus,
-    load_md_list_yaml,
     validate_file,
     validate_new_file,
 )
@@ -52,15 +53,24 @@ class ImodCtfSeries:
 
     @staticmethod
     def cets_to_imod(
-        ctf_yaml_file: Path | str,
+        ctf_yaml_file: Path | str | List[CTFMetadata],
         tilt_angle_list: List[float],
         defocus_file: Path,
     ) -> None:
-        """Reads a .yaml file containing the serialized CETS CTFMetadata objects of
-        all the tilt-images that compose a tilt-series and generates the corresponding
-        IMOD defocus file (version 3, with astigmatism and, if any image has a non-zero
-        phase shift, phase shifts in degrees)."""
-        md_list = load_md_list_yaml(ctf_yaml_file, CTFMetadata)
+        """Generates the IMOD defocus file (version 3, with astigmatism and, if any image
+        has a non-zero phase shift, phase shifts in degrees) of the CETS CTFMetadata of all
+        the tilt-images that compose a tilt-series.
+
+        :param ctf_yaml_file: the CTFMetadata, one per tilt-image, or a .yaml file
+        containing them serialized.
+        """
+        if isinstance(ctf_yaml_file, list):
+            md_list = [md.model_dump() for md in ctf_yaml_file]
+        else:
+            md_list = [
+                md.model_dump()
+                for md in load_cets_objects(ctf_yaml_file, CTF_KEY, CTFMetadata)
+            ]
         n_data_sec = len(md_list)
         n_angles = len(tilt_angle_list)
         if n_data_sec != n_angles:

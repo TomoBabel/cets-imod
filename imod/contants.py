@@ -10,3 +10,11 @@ DEFOCUS_FLAG_INVERTED_ANGLES = 16  # tilt angles inverted (ctfplotter -invert)
 DEFOCUS_FLAG_CUT_ON = 32  # column of cut-on frequency
 # Version written at the end of the header line of version 3 defocus files
 DEFOCUS_FILE_VERSION_3 = 3
+
+# Keys of the objects in the CETS yaml files (see cets_data_model.utils.yaml_io)
+TILT_SERIES_KEY = "tilt_series"
+ALIGNMENT_KEY = "alignment"
+INSTRUMENT_KEY = "instrument"
+ACQUISITION_SESSION_KEY = "acquisition_session"
+CTF_KEY = "ctf"
+TOMOGRAM_KEY = "tomogram"
